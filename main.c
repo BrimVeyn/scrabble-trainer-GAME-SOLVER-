@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 15:52:26 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/28 16:07:11 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,10 @@ void hashtable_clear(word **hashTable) {
 		}
 	}
 }
+
+// int hashtable_find(word **hashTable, char *to_find) {
+// 	int index = get_hash(to_find);
+// }
 
 int main(void) {
 
