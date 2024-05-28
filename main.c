@@ -6,68 +6,17 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 16:07:11 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/28 17:13:29 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "include/hashmap_define.h"
+#include "include/hashTableDefine.h"
 #include "include/struct.h"
-
-#define TABLE_SIZE 150000
-#define BUFFER_SIZE 1024
+#include <string.h>
 
 int s_points[26] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10};
 
-int get_hash(char* s) {
-	int n = strlen(s);
-    long long p = 31, m = 1e9 + 7;
-    long long hash = 0;
-    long long p_pow = 1;
-    for(int i = 0; i < n; i++) {
-        hash = (hash + (s[i] - 'a' + 1) * p_pow) % m;
-        p_pow = (p_pow * p) % m;
-    }
-	if (hash < 0)
-		hash = -hash;
-	return hash % TABLE_SIZE;
-}
-
-void hashtable_add(word **hashTable, word *word, size_t index) {
-	if (hashTable[index] == NULL) {
-		hashTable[index] = word;
-	}
-	else {
-		struct word *current = hashTable[index];
-		while (current->next != NULL) {
-			current = current->next;
-		}
-		current->next = word;
-	}
-}
-
-void hashtable_init(word **hashTable) {
-	for (int i = 0; i < TABLE_SIZE; i++) {
-		hashTable[i] = NULL;
-	}
-}
-
-void hashtable_print(word **hashTable) {
-	for (int i = 0; i < TABLE_SIZE; i++) {
-		if (hashTable[i] != NULL) {
-			struct word *current = hashTable[i];
-			printf("-- %d\t", i);
-			while (current != NULL) {
-				printf("w: %-10s\ts: %d\t", current->word, current->score);
-				current = current->next;
-			}
-			printf("\n");
-		}
-		else
-			printf("-- %d\tNULL\n", i);
-	}
-}
-
-char* get_raw_data(int fd) {
+char* getRawData(int fd) {
     char *buffer = NULL;
     size_t buffer_size = 0;
     ssize_t bytes_read;
@@ -93,16 +42,7 @@ char* get_raw_data(int fd) {
     return buffer;
 }
 
-word *word_new(char *word, int score) {
-	struct word *ptr = malloc(sizeof(struct word));
-
-	ptr->word = strdup(word);
-	ptr->score = score;
-	ptr->next = NULL;
-	return ptr;
-}
-
-void fill_hashtable_from_data(word **hashTable, char *raw_data) {
+void fillHashTable(word **hashTable, char *raw_data) {
 	int i = 0, j;
 	char buffer[64];
 	while (raw_data[i]) {
@@ -112,48 +52,42 @@ void fill_hashtable_from_data(word **hashTable, char *raw_data) {
 		}
 		if (!raw_data[i]) return;
 		buffer[j] = 0;
-		struct word *ptr = word_new(buffer, 10);
-		hashtable_add(hashTable, ptr, get_hash(ptr->word));
+		struct word *ptr = wordNew(buffer, 10);
+		hashTableAdd(hashTable, ptr, getHash(ptr->word));
 		i++;
 	}
 }
 
-void hashtable_clear(word **hashTable) {
-	for (int i = 0; i < TABLE_SIZE; i++) {
-		if (hashTable[i] != NULL) {
-			struct word * current = hashTable[i];
-			struct word * tmp;
-			while (current != NULL) {
-				tmp = current->next;
-				free(current->word);
-				free(current);
-				current = tmp;
-			}
+void gridInit(grid *grid) {
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			grid->grid[i][j] = 0;
 		}
 	}
 }
 
-// int hashtable_find(word **hashTable, char *to_find) {
-// 	int index = get_hash(to_find);
-// }
-
 int main(void) {
 
-	word * hashTable[TABLE_SIZE];
-	hashtable_init(hashTable);
+	grid grid;
 
-	int fd = open("data.txt", O_RDONLY);
-	if (fd == -1)
-		return 1;
+	gridInit(&grid);
 
-	char *raw_file = get_raw_data(fd);
-
-	fill_hashtable_from_data(hashTable, raw_file);
-
-	free(raw_file);
-	close(fd);
-
-
-	// hashtable_print(hashTable);
-	hashtable_clear(hashTable);
+	// word * hashTable[TABLE_SIZE];
+	// hashTableInit(hashTable);
+	//
+	// int fd = open("data/Data.txt", O_RDONLY);
+	// if (fd == -1)
+	// 	return 1;
+	//
+	// char *raw_file = getRawData(fd);
+	//
+	// fillHashTable(hashTable, raw_file);
+	//
+	// free(raw_file);
+	// close(fd);
+	//
+	// printf("%d\n", hashTableFind(hashTable, "MANGERENT"));
+	//
+	// // hashTablePrint(hashTable);
+	// hashTableClear(hashTable);
 }
