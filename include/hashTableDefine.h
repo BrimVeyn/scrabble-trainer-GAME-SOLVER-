@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 10:47:13 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 17:02:04 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/29 11:20:09 by nbardavi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,5 +31,9 @@ int getHash(char* s);
 void hashTableAdd(word **hashTable, word *word, size_t index);
 void hashTableInit(word **hashTable);
 void hashTablePrint(word **hashTable);
+
+//tree
+char ***create_buffers(char *raw_file);
+void free_3x_char(char ***buffer);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 17:13:29 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/29 11:20:42 by nbardavi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,14 @@ char* getRawData(int fd) {
     return buffer;
 }
 
+size_t getScore(char *word){
+	size_t score = 0;
+	for (int i = 0; word[i]; i++){
+		score += s_points[word[i] - 'A'];
+	}
+	return score;
+}
+
 void fillHashTable(word **hashTable, char *raw_data) {
 	int i = 0, j;
 	char buffer[64];
@@ -52,7 +60,7 @@ void fillHashTable(word **hashTable, char *raw_data) {
 		}
 		if (!raw_data[i]) return;
 		buffer[j] = 0;
-		struct word *ptr = wordNew(buffer, 10);
+		struct word *ptr = wordNew(buffer, getScore(buffer));
 		hashTableAdd(hashTable, ptr, getHash(ptr->word));
 		i++;
 	}
@@ -66,28 +74,38 @@ void gridInit(grid *grid) {
 	}
 }
 
+
 int main(void) {
 
 	grid grid;
 
 	gridInit(&grid);
 
-	// word * hashTable[TABLE_SIZE];
-	// hashTableInit(hashTable);
-	//
-	// int fd = open("data/Data.txt", O_RDONLY);
-	// if (fd == -1)
-	// 	return 1;
-	//
-	// char *raw_file = getRawData(fd);
-	//
-	// fillHashTable(hashTable, raw_file);
-	//
-	// free(raw_file);
-	// close(fd);
-	//
-	// printf("%d\n", hashTableFind(hashTable, "MANGERENT"));
-	//
-	// // hashTablePrint(hashTable);
-	// hashTableClear(hashTable);
+	word * hashTable[TABLE_SIZE];
+	hashTableInit(hashTable);
+
+	int fd = open("data/Data.txt", O_RDONLY);
+	if (fd == -1)
+		return 1;
+
+	char *raw_file = getRawData(fd);
+	
+	char ***sorted_file = create_buffers(raw_file);
+	// for (int i = 0; sorted_file[10][i]; i++){
+	// 	printf("%s\n", sorted_file[10][i]);
+	// }
+	(void) sorted_file;
+	free_3x_char(sorted_file);
+	
+	// printf("%s", raw_file);
+
+	fillHashTable(hashTable, raw_file);
+
+	free(raw_file);
+	close(fd);
+
+	printf("%d\n", hashTableFind(hashTable, "MANGERENT"));
+
+	// hashTablePrint(hashTable);
+	hashTableClear(hashTable);
 }
