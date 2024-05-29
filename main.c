@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 17:13:29 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/29 17:02:39 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,19 +58,66 @@ void fillHashTable(word **hashTable, char *raw_data) {
 	}
 }
 
-void gridInit(grid *grid) {
+grid gridInit(void) {
+	struct grid my_grid = {
+		.grid =		{ {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32}, 
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 'P', 32, 'P', 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 'I', 32, 'O', 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 'A', 'L', 'O', 'R', 'S', 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 'E', 32, 'C', 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32},
+					  {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32}, },
+		.modifier = { {TWORD, 0, 0, DLETTER, 0, 0, 0, TWORD, 0, 0, 0, DLETTER, 0, 0, TWORD},
+			       	  {0, DWORD, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, DWORD, 0},
+					  {0, 0, DWORD, 0, 0, 0, DLETTER, 0, DLETTER, 0, 0, 0, DWORD, 0, 0},
+					  {DLETTER, 0, 0, DWORD, 0, 0, 0, DLETTER, 0, 0, 0, DWORD, 0, 0, DLETTER},
+					  {0, 0, 0, 0, DWORD, 0, 0, 0, 0, 0, DWORD, 0, 0, 0, 0},
+					  {0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0},
+					  {0, 0, DLETTER, 0, 0, 0, DLETTER, 0, DLETTER, 0, 0, 0, DLETTER, 0, 0},
+					  {TWORD, 0, 0, DLETTER, 0, 0, 0, DWORD, 0, 0, 0, DLETTER, 0, 0, TWORD},
+					  {0, 0, DLETTER, 0, 0, 0, DLETTER, 0, DLETTER, 0, 0, 0, DLETTER, 0, 0},
+					  {0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0},
+					  {0, 0, 0, 0, DWORD, 0, 0, 0, 0, 0, DWORD, 0, 0, 0, 0},
+					  {DLETTER, 0, 0, DWORD, 0, 0, 0, DLETTER, 0, 0, 0, DWORD, 0, 0, DLETTER},
+					  {0, 0, DWORD, 0, 0, 0, DLETTER, 0, DLETTER, 0, 0, 0, DWORD, 0, 0},
+			       	  {0, DWORD, 0, 0, 0, TLETTER, 0, 0, 0, TLETTER, 0, 0, 0, DWORD, 0},
+					  {TWORD, 0, 0, DLETTER, 0, 0, 0, TWORD, 0, 0, 0, DLETTER, 0, 0, TWORD} },
+	};
+	return my_grid;
+}
+
+void gridDisplay(grid grid) {
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
-			grid->grid[i][j] = 0;
+			if (grid.modifier[i][j] == TWORD)
+				printf(DARK_RED "[%c]" RESET_COLOR, grid.grid[i][j]);
+			else if (grid.modifier[i][j] == DWORD)
+				printf(LIGHT_RED "[%c]" RESET_COLOR, grid.grid[i][j]);
+			else if (grid.modifier[i][j] == TLETTER)
+				printf(DARK_BLUE "[%c]" RESET_COLOR, grid.grid[i][j]);
+			else if (grid.modifier[i][j] == DLETTER)
+				printf(LIGHT_BLUE "[%c]" RESET_COLOR, grid.grid[i][j]);
+			else
+				printf(WHITE "[%c]" RESET_COLOR, grid.grid[i][j]);
 		}
+		printf("\n");
 	}
 }
 
 int main(void) {
 
-	grid grid;
 
-	gridInit(&grid);
+	struct grid s_grid = gridInit();
+
+	gridDisplay(s_grid);
 
 	// word * hashTable[TABLE_SIZE];
 	// hashTableInit(hashTable);
