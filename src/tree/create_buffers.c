@@ -6,12 +6,13 @@
 /*   By: nbardavi <nbabardavid@gmail.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/29 10:20:20 by nbardavi          #+#    #+#             */
-/*   Updated: 2024/05/29 11:24:07 by nbardavi         ###   ########.fr       */
+/*   Updated: 2024/05/29 17:45:30 by nbardavi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 // #include "../../include/struct.h"
 #include "../../include/hashTableDefine.h"
+#include <string.h>
 
 char ***create_buffers(char *raw_file){
 	int i = 0;
@@ -70,4 +71,85 @@ void free_3x_char(char ***buffer){
 	}
 	free(buffer);
 	buffer = NULL;
+}
+
+size_t mask_length(char mask[15]){
+	int c;
+	for (int i = 0; i < 15; i++)
+		if (mask[i] != '*') c = i ;
+	return c;
+}
+
+int check_word(char *word, char mask[15]){
+	
+	int len = strlen(word);
+	char *cpy = malloc(len * sizeof(char) + 1);
+	cpy[len] = '\0';
+	int i = 0;
+
+	while(i < len){
+		if (mask[i] != '*')
+			cpy[i] = word[i];
+		else
+			cpy[i] = '*';
+		i++;
+	}
+	int result = strncmp(mask, cpy, len);
+	free(cpy);
+	return result;
+}
+
+list list_init(int size){
+	list new;
+	new.content = malloc(sizeof(char*) * (size + 1));
+	new.size = 0;
+	new.capacity = size + 1;
+	return new;
+}
+
+void list_shrink_to_fit(list *list){
+	if (list->size != list->capacity - 1){
+		list->content = realloc(list->content, sizeof(char *) * list->size + 1);
+		list->content[list->size] = NULL;
+	}
+}
+
+void addToList(char *word, list *list){
+	int len = strlen(word);
+
+	if (list->size == list->capacity - 1){
+		list->content = realloc(list->content, (list->capacity - 1) * 2 + 1);
+		list->capacity = (list->capacity - 1) * 2 + 1;
+	}
+	list->content[list->size] = malloc(sizeof(char) * len);
+	memcpy(list->content[list->size], word, len + 1);
+	list->size++;
+}
+
+void is_first_letter(char **db, char mask[15], list *list){
+	
+	int i = 0;
+	size_t min_length = strlen(mask);
+
+	while(db[i]){
+		if (strlen(db[i]) >= min_length && check_word(db[i], mask) == 0){
+			addToList(db[i], list);
+		}
+		i++;
+	}
+}
+
+/*
+ * mask :
+ * "*" for every char
+ * "P" precise char
+ * example: [L, *, *, P] can return LOOP
+ */
+list mask_word(char *** database, char mask[15] ){
+	
+	list list = list_init(8);
+	if (mask[0] != '*'){ is_first_letter(database[mask[0] - 'A'], mask, &list);}
+	list_shrink_to_fit(&list);
+	// int min_length = mask_length(mask);
+	return list;
 }

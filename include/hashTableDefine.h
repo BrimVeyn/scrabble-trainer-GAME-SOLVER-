@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 10:47:13 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/29 11:20:09 by nbardavi         ###   ########.fr       */
+/*   Updated: 2024/05/29 17:34:22 by nbardavi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,6 @@ void hashTablePrint(word **hashTable);
 //tree
 char ***create_buffers(char *raw_file);
 void free_3x_char(char ***buffer);
+list mask_word(char *** database, char mask[15] );
 
 #endif
