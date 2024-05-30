@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/28 10:40:50 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/30 14:55:32 by bvan-pae         ###   ########.fr       */
+/*   Created: 2024/05/30 14:57:42 by bvan-pae          #+#    #+#             */
+/*   Updated: 2024/05/30 14:58:02 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,5 +38,10 @@ typedef struct grid {
 	int			modifier[15][15];
 } grid;
 
+typedef struct list {
+	char **content;
+	int size;
+	int capacity;
+} list;
 
 #endif

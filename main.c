@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/30 14:55:40 by bvan-pae         ###   ########.fr       */
+/*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
+/*   Updated: 2024/05/30 14:58:09 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,14 @@ char* getRawData(int fd) {
     return buffer;
 }
 
+size_t getScore(char *word){
+	size_t score = 0;
+	for (int i = 0; word[i]; i++){
+		score += s_points[word[i] - 'A'];
+	}
+	return score;
+}
+
 void fillHashTable(word **hashTable, char *raw_data) {
 	int i = 0, j;
 	char buffer[64];
@@ -52,7 +60,7 @@ void fillHashTable(word **hashTable, char *raw_data) {
 		}
 		if (!raw_data[i]) return;
 		buffer[j] = 0;
-		struct word *ptr = wordNew(buffer, 10);
+		struct word *ptr = wordNew(buffer, getScore(buffer));
 		hashTableAdd(hashTable, ptr, getHash(ptr->word));
 		i++;
 	}
@@ -112,15 +120,16 @@ void gridDisplay(grid grid) {
 	}
 }
 
+
 int main(void) {
 
 
-	// struct grid s_grid = gridInit();
-
-
-
-
-
+	// // struct grid s_grid = gridInit();
+	//
+	//
+	//
+	//
+	//
 	// word * hashTable[TABLE_SIZE];
 	// hashTableInit(hashTable);
 	//
@@ -129,6 +138,23 @@ int main(void) {
 	// 	return 1;
 	//
 	// char *raw_file = getRawData(fd);
+	// 
+	// char ***sorted_file = create_buffers(raw_file);
+	// 
+	// char mask[15] = "P****D";
+	// list test = mask_word(sorted_file, mask);
+	// (void)test;
+	// // for (int i = 0; test.content[i]; i++){
+	// // 	printf("%s\n", test.content[i]);
+	// // }
+	//
+	// for (int i = 0; sorted_file[10][i]; i++){
+	// 	printf("%s\n", sorted_file[10][i]);
+	// }
+	// (void) sorted_file;
+	// free_3x_char(sorted_file);
+	// 
+	// // printf("%s", raw_file);
 	//
 	// fillHashTable(hashTable, raw_file);
 	//

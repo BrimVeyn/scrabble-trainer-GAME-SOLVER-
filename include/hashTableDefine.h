@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/28 10:47:13 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/30 14:55:01 by bvan-pae         ###   ########.fr       */
+/*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
+/*   Updated: 2024/05/30 14:57:35 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,10 @@ int getHash(char* s);
 void hashTableAdd(word **hashTable, word *word, size_t index);
 void hashTableInit(word **hashTable);
 void hashTablePrint(word **hashTable);
+
+//tree
+char ***create_buffers(char *raw_file);
+void free_3x_char(char ***buffer);
+list mask_word(char *** database, char mask[15] );
 
 #endif
