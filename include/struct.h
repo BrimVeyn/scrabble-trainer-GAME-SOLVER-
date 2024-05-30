@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 10:40:50 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/29 15:39:45 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/30 14:55:32 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #define DARK_RED "\x1b[48;5;1m\x1b[30m"
 #define LIGHT_RED "\x1b[48;5;216m\x1b[30m"
 #define LIGHT_BLUE "\x1b[48;5;39m\x1b[30m"
-#define WHITE "\x1b[48;5;15m\x1b[30m"
+#define w_WHITE "\x1b[48;5;15m\x1b[30m"
 #define DARK_BLUE "\x1b[48;5;18m\x1b[30m"
 #define RESET_COLOR "\033[0m"
 

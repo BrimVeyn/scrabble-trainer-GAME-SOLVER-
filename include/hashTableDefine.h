@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 10:47:13 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 17:02:04 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/30 14:55:01 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,11 @@
 #define TABLE_SIZE 150000
 #define BUFFER_SIZE 1024
 
+#define screenWidth  1000
+#define screenHeight 1000
+
 #include "struct.h"
+#include "../lib/raylib/include/raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

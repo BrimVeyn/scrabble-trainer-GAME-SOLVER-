@@ -4,7 +4,7 @@ BIN             := demo
 
 CC              := cc
 CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast
-LDFLAGS			:= -lm
+LDFLAGS			:= -lm -Ilib/raylib/include -Llib/raylib/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 SILENT_FLAGS 	:= -D SILENT=1
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)
