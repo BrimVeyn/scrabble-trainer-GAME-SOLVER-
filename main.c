@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
+/*   By: nbardavi <nbabardavid@gmail.com>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/28 13:08:05 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/29 17:45:23 by nbardavi         ###   ########.fr       */
+/*   Updated: 2024/05/30 11:00:21 by nbardavi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,16 +92,16 @@ int main(void) {
 	
 	char ***sorted_file = create_buffers(raw_file);
 	
-	// char mask[15] = "P****C";
-	// list test = mask_word(sorted_file, mask);
-	// (void)test;
+	char mask[15] = "P****D";
+	list test = mask_word(sorted_file, mask);
+	(void)test;
 	// for (int i = 0; test.content[i]; i++){
 	// 	printf("%s\n", test.content[i]);
 	// }
-	//
-	// for (int i = 0; sorted_file[10][i]; i++){
-	// 	printf("%s\n", sorted_file[10][i]);
-	// }
+
+	for (int i = 0; sorted_file[10][i]; i++){
+		printf("%s\n", sorted_file[10][i]);
+	}
 	(void) sorted_file;
 	free_3x_char(sorted_file);
 	
