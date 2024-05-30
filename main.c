@@ -6,12 +6,13 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/30 14:58:09 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/30 17:30:14 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "include/hashTableDefine.h"
 #include "include/struct.h"
+#include "lib/raylib/include/raylib.h"
 #include <string.h>
 
 int s_points[26] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10};
@@ -102,29 +103,99 @@ grid gridInit(void) {
 	return my_grid;
 }
 
-void gridDisplay(grid grid) {
+char *getText(int c) {
+	switch (c) {
+		case TWORD:
+			return "MT";
+		case DWORD:
+			return "MD";
+		case DLETTER:
+			return "LD";
+		case TLETTER:
+			return "LT";
+		default:
+			return "";
+	}
+}
+
+Color getColor(int c) {
+	switch (c) {
+		case TWORD:
+			return RED;
+		case DWORD:
+			return BEIGE;
+		case DLETTER:
+			return SKYBLUE;
+		case TLETTER:
+			return DARKBLUE;
+		default:
+			return WHITE;
+	}
+}
+
+void gridDisplay(grid *grid) {
+	int size = 40;
+	int offsetX = 125;
+	int offsetY = 125;
 	for (int i = 0; i < 15; i++) {
 		for (int j = 0; j < 15; j++) {
-			if (grid.modifier[i][j] == TWORD)
-				printf(DARK_RED "[%c]" RESET_COLOR, grid.grid[i][j]);
-			else if (grid.modifier[i][j] == DWORD)
-				printf(LIGHT_RED "[%c]" RESET_COLOR, grid.grid[i][j]);
-			else if (grid.modifier[i][j] == TLETTER)
-				printf(DARK_BLUE "[%c]" RESET_COLOR, grid.grid[i][j]);
-			else if (grid.modifier[i][j] == DLETTER)
-				printf(LIGHT_BLUE "[%c]" RESET_COLOR, grid.grid[i][j]);
+			int posX = (offsetX + (j * size));
+			int posY = (offsetY + (i * size));
+			int fontOffsetX = (size / 6), fontOffsetY = (size / 3.5);
+			int fontSize = (size / 2);
+			char *modifierText = getText(grid->modifier[i][j]);
+			Color modifierColor = getColor(grid->modifier[i][j]);
+			if (grid->modifier[i][j] != 0 && grid->grid[i][j] == 0)
+            {
+				DrawRectangle(posX, posY, size, size, modifierColor);
+				DrawText(modifierText, posX + fontOffsetX, posY + fontOffsetY, fontSize, (Color){ 200, 200, 200, 255 });
+            }
 			else
-				printf(w_WHITE "[%c]" RESET_COLOR, grid.grid[i][j]);
+            {
+				if (grid->grid[i][j] != 0)
+					DrawRectangle(posX, posY, size, size, (Color) {255, 255, 255, 255});
+				else
+					DrawRectangle(posX, posY, size, size, (Color) {.r = 210, .g = 210, .b = 210, .a = 255});
+				DrawText((char[]) { grid->grid[i][j], '\0'}, posX + fontOffsetX + 10, posY + fontOffsetY, fontSize, BLACK);
+				if (grid->modifier[i][j] != 0)
+					DrawRectangleLinesEx((Rectangle) {.x = posX + 1, .y = posY + 1, .width = size - 2, .height = size - 2}, 2, modifierColor);
+            }
+			DrawRectangleLines(posX, posY, size, size, BLACK);
 		}
-		printf("\n");
 	}
+	int thickness = size / 4;
+	Rectangle rec = {.x = offsetX -  thickness, .y = offsetY - thickness, .width = (size * 15) + (thickness * 2), .height = (size * 15) + (thickness * 2)};
+	DrawRectangleLinesEx(rec, thickness, BROWN);
+}
+
+void putLetter(grid *grid, int x, int y, char c) {
+	grid->grid[x][y] = c;
+}
+
+void RayLoop(grid *grid) {
+	while (!WindowShouldClose()) {
+
+        BeginDrawing();
+		gridDisplay(grid);
+		if (IsKeyPressed(KEY_A)) {
+			putLetter(grid, GetRandomValue(0, 15), GetRandomValue(0, 15), (GetRandomValue(0, 25) + 'A'));
+		}
+		EndDrawing();
+	}
+    CloseWindow();
 }
 
 
 int main(void) {
 
 
-	// // struct grid s_grid = gridInit();
+	struct grid s_grid = gridInit();
+
+	InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+
+    SetTargetFPS(60);
+
+	RayLoop(&s_grid);
 	//
 	//
 	//
