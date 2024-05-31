@@ -220,7 +220,7 @@ typedef struct Vector3 {
 
 // Vector4, 4 components
 typedef struct Vector4 {
-    float x;                // Vector x component
+    float x;                //	Vector x component
     float y;                // Vector y component
     float z;                // Vector z component
     float w;                // Vector w component

@@ -6,18 +6,18 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/30 14:57:35 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/05/31 15:14:16 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HASHMAP_DEFINE
 # define HASHMAP_DEFINE
 
-#define TABLE_SIZE 150000
 #define BUFFER_SIZE 1024
 
-#define screenWidth  1000
-#define screenHeight 1000
+#define screenWidth  800
+#define screenHeight 800
+#define	B_SIZE		 40
 
 #include "struct.h"
 #include "../lib/raylib/include/raylib.h"
@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <time.h>
 
 char	**ft_split(char const *s, char c);
 int hashTableFind(word **hashTable, char *to_find);
