@@ -72,6 +72,11 @@ $(OBJDIR):
 $(LIB_DIR):
 	@mkdir -p $(LIB_DIR)
 
+swap-lib:
+	@mv ./lib/raylib/lib/libraylib.a tmp
+	@mv ./lib/raylib/lib/.tmplib ./lib/raylib/lib/libraylib.a
+	@mv tmp ./lib/raylib/lib/.tmplib
+
 re: fclean all
 
 .PHONY: all clean fclean re compile_commands.json
