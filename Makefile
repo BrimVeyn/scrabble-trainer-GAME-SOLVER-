@@ -1,15 +1,12 @@
-LIB_NAME        := libhash.a
-LIB_DIR         := lib
 BIN             := demo
 
 CC              := cc
 CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast
 LDFLAGS			:= -lm -Ilib/raylib/include -Llib/raylib/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-SILENT_FLAGS 	:= -D SILENT=1
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)
 
-SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) $(wildcard src/tree/*.c) $(wildcard src/game/*.c)
+SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) $(wildcard src/tree/*.c) $(wildcard src/game/*.c) main.c
 
 OBJ             := $(SRC:src/%.c=objects/%.o)
 
@@ -27,15 +24,10 @@ WHITE           := \033[0;97m
 
 all: $(BIN)
 
-$(LIB_DIR)/$(LIB_NAME): $(LIB_DIR) $(OBJ)
-	@echo "$(GREEN)Creating library: $(LIB_NAME)"
-	@ar rcs $(LIB_DIR)/$(LIB_NAME) $(OBJ)
-	@printf "Done !$(DEF_COLOR)\n"
-
-$(BIN): $(LIB_DIR)/$(LIB_NAME) objects/main.o
+$(BIN): $(OBJ)
 	@echo "$(GREEN)Making binary: $(BIN)"
 	@printf "$(MAGENTA)"
-	@$(CC) objects/main.o $(LIB_DIR)/$(LIB_NAME) $(CFLAGS) $(LDFLAGS) -I $(INC_DIR) -o $(BIN)
+	@$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) -I $(INC_DIR) -o $(BIN)
 	@printf "Done !$(DEF_COLOR)\n"
 
 objects/%.o: src/%.c | $(OBJDIR)
@@ -55,11 +47,8 @@ objects/main.o: main.c | $(OBJDIR)
 compile_commands.json:
 	bear -- make
 
-silent: CFLAGS += $(SILENT_FLAGS)
-silent: $(BIN)
-
 clean:
-	@rm -rf $(OBJDIR) $(LIB_DIR)/$(LIB_NAME)
+	@rm -rf $(OBJDIR)
 	@printf "$(RED)Objects and library deleted !$(DEF_COLOR)\n"
 
 fclean: clean

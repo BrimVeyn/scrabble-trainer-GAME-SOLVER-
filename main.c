@@ -222,7 +222,42 @@ Match getHoriWord(Point ruler_cell, GameData *game_data) {
   }
 }
 
+int countRulerOnGrid(Ruler ruler) {
+  int x = 0;
+  for (int i = 0; i < 7; i++) {
+    if (ruler.cell[i].x != -1)
+      x++;
+  }
+  return x;
+}
+
+void checkAlignment(GameData *game_data) {
+  int x_ref = -1, y_ref = -1;
+  bool ref = true;
+  if (countRulerOnGrid(game_data->ruler) != 1) {
+    for (int i = 0; i < 7; i++) {
+      if (game_data->ruler.cell[i].x != -1 && ref) {
+        x_ref = game_data->ruler.cell[i].x;
+        y_ref = game_data->ruler.cell[i].y;
+        ref = false;
+        continue;
+      }
+      if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].x != x_ref)
+        x_ref = -1;
+      if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].y != y_ref)
+        y_ref = -1;
+    }
+    // if (x_ref != -1)
+    //   printf("found x\n");
+    // if (y_ref != -1)
+    //   printf("found y\n");
+    // if (x_ref == -1 && y_ref == -1)
+    //   printf("found nothing\n");
+  }
+}
+
 void checkTourWord(GameData *game_data) {
+  checkAlignment(game_data); //check if ruler's cell are on the same axis;
   for (int i = 0; i < 7; i++) {
     if (game_data->ruler.cell[i].x != -1) {
       Neighbor neighbors = contactPoint(game_data->ruler.cell[i], &game_data->grid);
