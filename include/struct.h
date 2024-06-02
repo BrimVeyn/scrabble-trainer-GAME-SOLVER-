@@ -25,6 +25,7 @@
 #define ORDERED_WORD_LIST_PATH "data/Data.txt"
 
 #define C_WHITE (Color){ 200, 200, 200, 255 }
+#define EMPTY_CELL_GRAY (Color) {.r = 210, .g = 210, .b = 210, .a = 255}
 
 enum {
 	DWORD = 1,
@@ -46,7 +47,6 @@ typedef struct Point {
 } Point;
 
 typedef struct Neighbor {
-	Point points[4];
 	int	  dir[4];
 	bool valid;
 } Neighbor;
@@ -83,6 +83,12 @@ typedef struct Ruler {
 typedef struct Purse {
 	int purse[26];
 } Purse;
+
+typedef struct Match {
+  char word[15];
+  int  start;
+  int  end;
+} Match;
 
 typedef struct GameData {
 	struct word * hashTable[TABLE_SIZE];

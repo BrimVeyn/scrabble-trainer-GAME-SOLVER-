@@ -9,11 +9,11 @@ SILENT_FLAGS 	:= -D SILENT=1
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)
 
-SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) $(wildcard src/tree/*.c)
+SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) $(wildcard src/tree/*.c) $(wildcard src/game/*.c)
 
 OBJ             := $(SRC:src/%.c=objects/%.o)
 
-OBJDIR          := objects objects/src objects/hashTable objects/tree
+OBJDIR          := objects objects/src objects/hashTable objects/tree objects/game
 
 DEF_COLOR       := \033[0;39m
 GRAY            := \033[0;90m
