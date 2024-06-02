@@ -82,11 +82,9 @@ void drawGrid(Grid *grid) {
   DrawRectangleLinesEx(rec, thickness, BLACK);
 }
 
-void drawRuler(Ruler *ruler) {
-	int fontSize = (CELL_SIZE / 2);
-	int fontOffsetX = (CELL_SIZE / 3), fontOffsetY = (CELL_SIZE / 3.5);
-	for (int i = 0; i < 7; i++) {
-
+void drawRulerRect(Ruler *ruler, int i) {
+    int fontSize = (CELL_SIZE / 2);
+    int fontOffsetX = (CELL_SIZE / 3), fontOffsetY = (CELL_SIZE / 3.5);
 		if (ruler->value[i] == 0) {
 			DrawRectangleRec(ruler->rect[i], C_WHITE);
 		}
@@ -96,20 +94,37 @@ void drawRuler(Ruler *ruler) {
 			DrawText((char[]) { ruler->value[i], '\0'}, ruler->rect[i].x + fontOffsetX, ruler->rect[i].y + fontOffsetY, fontSize, BLACK);
 			DrawRectangleLinesEx((Rectangle) {.x = ruler->rect[i].x + 1, .y = ruler->rect[i].y + 1, .width = CELL_SIZE - 2, .height = CELL_SIZE - 1}, 2, getColor(ruler->modifier[i]));
 		}
-
 		DrawRectangleLinesEx(ruler->base_rect[i], 2, BLACK);
-	}
 }
 
-Point findClosestEmpty(Point cell, GameData *game_data) {
-	for (int i = 0; i < 7; i++) {
-		if (game_data->grid.grid[cell.y + i][cell.x] == 0)
+void drawRuler(Ruler *ruler) {
+  if (ruler->access == false) {
+    int last_to_draw;
+    for (int j = 0; j < 7; j++) {
+      if (ruler->dragging[j] == true)
+        last_to_draw = j;
+    }
+    for (int i = 0; i < 7; i++) {
+      if (i != last_to_draw)
+        drawRulerRect(ruler, i);
+    }
+    drawRulerRect(ruler, last_to_draw);
+  } else {
+    for (int i = 0; i < 7; i++) {
+      drawRulerRect(ruler, i);
+    }
+  }
+}
+
+Point findClosestEmpty(Point cell, Grid grid) {
+	for (int i = 0; i < 15; i++) {
+		if (grid.grid[cell.y + i][cell.x] == 0 && grid.tour_grid[cell.y + i][cell.x] == 0)
 			return (Point) {cell.x, cell.y + i};
-		if (game_data->grid.grid[cell.y][cell.x + i] == 0)
+		if (grid.grid[cell.y][cell.x + i] == 0 && grid.tour_grid[cell.y][cell.x + i] == 0)
 			return (Point) {cell.x + i, cell.y};
-		if (game_data->grid.grid[cell.y - i][cell.x] == 0)
+		if (grid.grid[cell.y - i][cell.x] == 0 && grid.tour_grid[cell.y - i][cell.x] == 0)
 			return (Point) {cell.x, cell.y - i};
-		if (game_data->grid.grid[cell.y][cell.x - i] == 0)
+		if (grid.grid[cell.y][cell.x - i] == 0 && grid.tour_grid[cell.y][cell.x - i] == 0)
 			return (Point) {cell.x - i, cell.y};
 	}
 	return (Point) {cell.x, cell.y};
@@ -275,15 +290,16 @@ void dropRuler(GameData *game_data, Vector2 mouseP) {
         game_data->ruler.cell[i].x = (mouseP.x - DRAW_OFFSET_X) / CELL_SIZE;
         game_data->ruler.cell[i].y = (mouseP.y - DRAW_OFFSET_Y) / CELL_SIZE;
         if (game_data->grid.grid[game_data->ruler.cell[i].y][game_data->ruler.cell[i].x] != 0)
-          game_data->ruler.cell[i] = findClosestEmpty(game_data->ruler.cell[i], game_data);
+          game_data->ruler.cell[i] = findClosestEmpty(game_data->ruler.cell[i], game_data->grid);
         else if (game_data->grid.tour_grid[game_data->ruler.cell[i].y][game_data->ruler.cell[i].x] != 0) {
-          printf("SWAP\n");
+            //Could be better is ruler cells were swappable
+            game_data->ruler.cell[i] = findClosestEmpty(game_data->ruler.cell[i], game_data->grid);
         }
         game_data->ruler.rect[i].x = game_data->ruler.cell[i].x * CELL_SIZE + DRAW_OFFSET_X;
         game_data->ruler.rect[i].y = game_data->ruler.cell[i].y * CELL_SIZE + DRAW_OFFSET_Y;
         game_data->grid.tour_grid[game_data->ruler.cell[i].y][game_data->ruler.cell[i].x] = game_data->ruler.value[i];
         game_data->ruler.modifier[i] = game_data->grid.modifier[game_data->ruler.cell[i].y][game_data->ruler.cell[i].x];
-        printGrid(game_data->grid.tour_grid);
+        // printGrid(game_data->grid.tour_grid);
       }
       else {
         game_data->grid.tour_grid[game_data->ruler.cell[i].y][game_data->ruler.cell[i].x] = 0;
