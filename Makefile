@@ -1,8 +1,9 @@
 BIN             := demo
+LIB_VECTOR		:= lib_vector/lib/libvector.a
 
 CC              := cc
 CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast
-LDFLAGS			:= -lm -Ilib/raylib/include -Llib/raylib/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+LDFLAGS			:= -lm -Ilib/raylib/include -Ilib_vector/include -Llib/raylib/lib -Lvector_lib/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)
 
@@ -24,10 +25,10 @@ WHITE           := \033[0;97m
 
 all: $(BIN)
 
-$(BIN): $(OBJ)
+$(BIN): $(LIB_VECTOR) $(OBJ)
 	@echo "$(GREEN)Making binary: $(BIN)"
 	@printf "$(MAGENTA)"
-	@$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) -I $(INC_DIR) -o $(BIN)
+	@$(CC) $(OBJ) $(CFLAGS) $(LIB_VECTOR) $(LDFLAGS) -I $(INC_DIR) -o $(BIN)
 	@printf "Done !$(DEF_COLOR)\n"
 
 objects/%.o: src/%.c | $(OBJDIR)
@@ -53,6 +54,7 @@ clean:
 
 fclean: clean
 	@rm -rf $(BIN)
+	@make -C lib_vector/ fclean
 	@printf "$(RED)Binary deleted !$(DEF_COLOR)\n"
 
 $(OBJDIR):
@@ -60,6 +62,9 @@ $(OBJDIR):
 
 $(LIB_DIR):
 	@mkdir -p $(LIB_DIR)
+
+$(LIB_VECTOR):
+	@make -C lib_vector/
 
 swap-lib:
 	@mv ./lib/raylib/lib/libraylib.a tmp

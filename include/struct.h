@@ -6,13 +6,14 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:42 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/31 15:40:15 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/03 17:21:05 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef STRUCT_H
 # define STRUCT_H
 #include "../lib/raylib/include/raylib.h"
+#include "../lib_vector/include/struct.h"
 
 #define DARK_RED "\x1b[48;5;1m\x1b[30m"
 #define LIGHT_RED "\x1b[48;5;216m\x1b[30m"
@@ -82,13 +83,22 @@ typedef struct Ruler {
 
 typedef struct Purse {
 	int purse[26];
+	Vector purse_vect;
 } Purse;
 
 typedef struct Match {
-  char word[15];
-  int  start;
-  int  end;
+  char	word[15];
+  int	start;
+  int	end;
+  int	dir;
+  bool  validated;
 } Match;
+
+typedef struct TourManager {
+	bool tourIsDone;
+	bool canValidate;
+	Match word_list[30];
+} TourManager;
 
 typedef struct GameData {
 	struct word * hashTable[TABLE_SIZE];
@@ -96,7 +106,10 @@ typedef struct GameData {
 	struct Purse purse;
 	struct Ruler ruler;
 	struct Rectangle ruler_rect;
-}GameData;
+	struct TourManager	tour;
+	bool			isMainMenu;
+	bool			shouldBeClosed;
+} GameData;
 
 #include "struct.h"
 

@@ -6,17 +6,13 @@ struct Ruler rulerInit(Purse *purse) {
 
 	SetRandomSeed(time(0));
 	for (int i = 0; i < 7; i++) {
-		int val = GetRandomValue(4, 8);
-		if (purse->purse[val] != 0)
-			purse->purse[val] -= 1;
-		else {
-			i--;
-			continue;
-        }
-		new.value[i] = val + 'A';
+		int index = GetRandomValue(0, purse->purse_vect.size - 1);
+	 	int *val = vector_at(&purse->purse_vect, index);
+		new.value[i] = *val;
+		vector_erase_index(&purse->purse_vect, index);
 		new.rect[i] = (Rectangle) {
-			.x = DRAW_OFFSET_X + 4 * CELL_SIZE + (i * CELL_SIZE),
-			.y = screenHeight - (CELL_SIZE * 2),
+			.x = DRAW_OFFSET_X + CELL_SIZE + (i * CELL_SIZE),
+			.y = DRAW_OFFSET_Y + (16 * CELL_SIZE),
 			.height = CELL_SIZE,
 			.width =CELL_SIZE,
 		};

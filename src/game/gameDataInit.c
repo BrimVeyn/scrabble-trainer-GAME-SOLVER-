@@ -6,6 +6,7 @@ GameData gameDataInit( void ) {
 		.grid = gridInit(),
 		.purse = purseInit(),
 	};
+	printf("ici\n");
 
 	hashedWordInit(&game_data);
 	Rectangle new_rect = {
@@ -25,5 +26,10 @@ GameData gameDataInit( void ) {
 	game_data.grid.grid_rect = grid_rect;
 	game_data.ruler_rect = new_rect;
 	game_data.ruler = rulerInit(&game_data.purse);
+	game_data.isMainMenu = true;
+	game_data.shouldBeClosed = false;
+	game_data.tour.tourIsDone = false;
+	game_data.tour.canValidate = false;
+	// game_data.tour.word_list
   return game_data;
 }

@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/31 15:14:16 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/03 14:42:30 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,17 @@
 
 #define BUFFER_SIZE 1024
 
-#define screenWidth  1200
-#define screenHeight 1200
-#define	CELL_SIZE		 60
-#define DRAW_OFFSET_X     100
-#define DRAW_OFFSET_Y     70
+#define screenWidth  800
+#define screenHeight 800
+#define	CELL_SIZE		 40
+#define DRAW_OFFSET_X     5
+#define DRAW_OFFSET_Y     5
 
 #include "struct.h"
 #include "../lib/raylib/include/raylib.h"
+#include "../lib_vector/include/struct.h"
+#include "../lib_vector/include/Vector/vector_define.h"
+#include "../lib_vector/include/Iterator/iterator_define.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
