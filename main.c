@@ -6,28 +6,36 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/03 17:32:01 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/04 17:30:00 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "include/hashTableDefine.h"
 #include "include/struct.h"
 #include "lib/raylib/include/raylib.h"
+#include <stdlib.h>
 #include <string.h>
 
+TextVar getTextVar(char *text, int font_size) {
+	return (TextVar) {
+		.text_size = MeasureText(text, font_size),
+		.font_size = font_size,
+		.text = text,
+	};
+}
 
-char *getText(int c) {
+TextVar getText(int c, int font_size) {
 	switch (c) {
 		case TWORD:
-			return "MT";
+			return getTextVar("MT", font_size);
 		case DWORD:
-			return "MD";
+			return getTextVar("MD", font_size);
 		case DLETTER:
-			return "LD";
+			return getTextVar("LD", font_size);
 		case TLETTER:
-			return "LT";
+			return getTextVar("LT", font_size);
 		default:
-			return "";
+			return (TextVar) {0};
 	}
 }
 
@@ -47,8 +55,7 @@ Color getColor(int c) {
 }
 
 void drawGrid(Grid *grid) {
-	int posX, posY, fontOffsetX, fontOffsetY, fontSize;
-	char *modifierText;
+	int posX, posY, fontSize;
 	Color modifierColor;
 
 	for (int i = 0; i < 15; i++) {
@@ -56,28 +63,28 @@ void drawGrid(Grid *grid) {
 
 			posX = (DRAW_OFFSET_X + (j * CELL_SIZE));
 			posY = (DRAW_OFFSET_Y + (i * CELL_SIZE));
-			fontOffsetX = (CELL_SIZE / 3), fontOffsetY = (CELL_SIZE / 3.5);
 			fontSize = (CELL_SIZE / 2);
-			modifierText = getText(grid->modifier[i][j]);
+			TextVar modifierText = getText(grid->modifier[i][j], fontSize);
 			modifierColor = getColor(grid->modifier[i][j]);
 
 			if (grid->modifier[i][j] != 0 && grid->grid[i][j] == 0) {
 				DrawRectangle(posX, posY, CELL_SIZE, CELL_SIZE, modifierColor);
-				DrawText(modifierText, posX + fontOffsetX, posY + fontOffsetY, fontSize, C_WHITE);
+				DrawText(modifierText.text, posX + (CELL_SIZE / 2) - modifierText.text_size / 2, posY + CELL_SIZE / 2 - fontSize / 2, fontSize, GRAY);
 			}
 			else {
 				if (grid->grid[i][j] != 0)
 					DrawRectangle(posX, posY, CELL_SIZE, CELL_SIZE, WHITE);
 				else
 					DrawRectangle(posX, posY, CELL_SIZE, CELL_SIZE, EMPTY_CELL_GRAY);
-				DrawText((char[]) { grid->grid[i][j], '\0'}, posX + fontOffsetX, posY + fontOffsetY, fontSize, BLACK);
+				TextVar cellText = getTextVar((char[]) { grid->grid[i][j], 0 }, fontSize);
+				DrawText(cellText.text, posX + (CELL_SIZE / 2) - cellText.text_size / 2, posY + CELL_SIZE / 2 - fontSize / 2, fontSize, BLACK);
 				if (grid->modifier[i][j] != 0)
 					DrawRectangleLinesEx((Rectangle) {.x = posX + 1, .y = posY + 1, .width = CELL_SIZE - 2, .height = CELL_SIZE - 1}, 2, modifierColor);
 			}
 			DrawRectangleLines(posX, posY, CELL_SIZE, CELL_SIZE, BLACK);
 		}
 	}
-	int thickness = CELL_SIZE / 6;
+	int thickness = CELL_SIZE / 16;
 	Rectangle rec = {.x = DRAW_OFFSET_X -  thickness, .y = DRAW_OFFSET_Y - thickness, .width = (CELL_SIZE * 15) + (thickness * 2), .height = (CELL_SIZE * 15) + (thickness * 2)};
 	DrawRectangleLinesEx(rec, thickness, BLACK);
 }
@@ -170,16 +177,20 @@ Neighbor contactPoint(Point c, GameData *game_data) {
 	return new;
 }
 
-Match getVertWord(Point ruler_cell, GameData *game_data) {
+Match getVertWord(Point ruler_cell, GameData *game_data, int dir) {
 	Match m = {
 		.word = {0},
 		.start = ruler_cell.y,
 		.end = ruler_cell.y,
-		.dir = 1,
+		.save_coord = ruler_cell.x,
+		.dir = dir,
 		.validated = false,
 	};
+	
+	int *x = dir == 1 ? &m.start : &m.save_coord;
+	int *y = dir == 1 ? &m.save_coord : &m.start;
 
-	while (game_data->grid.grid[m.start][ruler_cell.x] != 0 || game_data->grid.tour_grid[m.start][ruler_cell.x] != 0) {
+	while (game_data->grid.grid[*y][*x] != 0 || game_data->grid.tour_grid[m.start][ruler_cell.x] != 0) {
 		m.start--;
 	}
 	m.start++;
@@ -206,6 +217,7 @@ Match getHoriWord(Point ruler_cell, GameData *game_data) {
 		.word = {0},
 		.start = ruler_cell.x,
 		.end = ruler_cell.x,
+		.save_coord = ruler_cell.y,
 		.dir = 2,
 		.validated = false,
 	};
@@ -301,12 +313,100 @@ bool areWordsValid(TourManager tour) {
 	return true;
 }
 
+int k_points[26] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10};
+
+void updateTourHighest(TourManager * tour, int x, int y) {
+	if (x > tour->highest_x || (x == tour->highest_x && y > tour->highest_y))
+    {
+		tour->highest_x = x;
+		tour->highest_y = y;
+    }
+}
+
+int calcWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], TourManager *tour) {
+	int letter_score;
+	int letter_multiplier; 
+	int word_score = 0;
+	int word_multiplier = 1;
+	int modifier;
+
+	for (int i = word.start; i <= word.end; i++) {
+		modifier = 0;
+		letter_score = 0;
+		letter_multiplier = 1;
+		letter_score += k_points[word.word[i - word.start] - 'A'];
+
+		if (word.dir == 2) {
+			updateTourHighest(tour, i, word.save_coord);
+			if (g_tour[word.save_coord][i] != 0)
+				modifier = g_modifier[word.save_coord][i];
+        } else if (word.dir == 1) {
+			updateTourHighest(tour, word.save_coord, i);
+			if (g_tour[i][word.save_coord] != 0)
+				modifier = g_modifier[i][word.save_coord];
+        }
+		else
+			modifier = -1;
+
+		switch (modifier) {
+			case DLETTER:
+				letter_multiplier *= 2;
+				break;
+			case TLETTER:
+				letter_multiplier *= 3;
+				break;
+			case DWORD:
+				word_multiplier *= 2;
+				break;
+			case TWORD:
+				word_multiplier *= 3;
+				break;
+		}
+		word_score += (letter_score * letter_multiplier);
+	}
+	// printf("word score = %d\n", word_score * word_multiplier);
+	return word_score * word_multiplier;
+}
+
+int calcWordListScore(GameData * game_data) {
+	game_data->tour.highest_x = 0;
+	game_data->tour.highest_y = 0;
+	int total_score = 0;
+	for (int i = 0; game_data->tour.word_list[i].dir != 0; i++) {
+		total_score += calcWordScore(game_data->tour.word_list[i], game_data->grid.modifier, game_data->grid.tour_grid, &game_data->tour);
+	}
+	return total_score;
+}
+
+void drawTourWordOutline(GameData * game_data) {
+	for (int i = 0; i < game_data->tour.word_list[i].dir != 0; i++) {
+		if (hashTableFind(game_data->hashTable, game_data->tour.word_list[i].word) != -1) {
+			DrawRectangleLinesEx(game_data->tour.word_list[i].match_rect, 5, (Color){ 0, 228, 48, 150 });
+		} else {
+			DrawRectangleLinesEx(game_data->tour.word_list[i].match_rect, 5, (Color){ 230, 41, 55, 150 });
+		}
+	}
+}
+// Helper function to process a word (vertical or horizontal)
+void processWord(Match m, GameData *game_data, int *j) {
+    if (findWordList(game_data->tour.word_list, m) == false) {
+        game_data->tour.word_list[(*j)++] = m;
+        if (hashTableFind(game_data->hashTable, m.word)!= -1) {
+            game_data->tour.word_list[*j - 1].validated = true;
+        }
+    }
+}
+
 void checkTourWord(GameData *game_data) {
-	if (checkAlignment(game_data) == -1)//check if ruler's cell are on the same axis;
-		return ;
 	int j = 0;
 	game_data->tour.canValidate = false;
 	bzero(game_data->tour.word_list, sizeof(struct Match) * 30);
+	
+	//Check Alignement and return if ruler's cell are not on the same axis
+	if (checkAlignment(game_data) == -1)
+		return ;
+
+	//Iterate trhrough ruler'cell
 	for (int i = 0; i < 7; i++) {
 		if (game_data->ruler.cell[i].x != -1) {
 			Neighbor neighbors = contactPoint(game_data->ruler.cell[i], game_data);
@@ -314,44 +414,31 @@ void checkTourWord(GameData *game_data) {
 				continue;
 			else {
 				if (neighbors.dir[NORTH] || neighbors.dir[SOUTH]) {
-					Match m = getVertWord(game_data->ruler.cell[i], game_data);
-					Rectangle match_rect = {
+					Match m = getVertWord(game_data->ruler.cell[i], game_data, 1);
+					m.match_rect = (Rectangle) {
 						.x = game_data->ruler.rect[i].x,
 						.y = DRAW_OFFSET_Y + (m.start * CELL_SIZE),
 						.width = CELL_SIZE + 1,
 						.height = (m.end - m.start + 1) * CELL_SIZE,
 					};
-					if (findWordList(game_data->tour.word_list, m) == false) {
-						game_data->tour.word_list[j++] = m;
-						if (hashTableFind(game_data->hashTable, m.word) != -1) {
-							game_data->tour.word_list[j - 1].validated = true;
-							DrawRectangleLinesEx(match_rect, 5, (Color){ 0, 228, 48, 150 });
-						} else {
-							DrawRectangleLinesEx(match_rect, 5, (Color){ 230, 41, 55, 150 });
-						}
-                    }
+					processWord(m, game_data, &j);
 				}
 			}
 			if (neighbors.dir[EAST] || neighbors.dir[WEST]) {
 				Match m = getHoriWord(game_data->ruler.cell[i], game_data);
-				Rectangle match_rect = {
+				m.match_rect = (Rectangle) {
 					.x = DRAW_OFFSET_X + (m.start * CELL_SIZE),
 					.y = game_data->ruler.rect[i].y,
 					.width = (m.end - m.start + 1) * CELL_SIZE,
 					.height = CELL_SIZE + 1,
 				};
-				if (findWordList(game_data->tour.word_list, m) == false) {
-					game_data->tour.word_list[j++] = m;
-					if (hashTableFind(game_data->hashTable, m.word) != -1) {
-						game_data->tour.word_list[j - 1].validated = true;
-						DrawRectangleLinesEx(match_rect, 5, (Color){ 0, 228, 48, 150 });
-					} else {
-						DrawRectangleLinesEx(match_rect, 5, (Color){ 230, 41, 55, 150 });
-					}
-				}
+				processWord(m, game_data, &j);
 			}
 		}
 	}
+	game_data->tour.tour_score = calcWordListScore(game_data);
+	printf("tour score = %d\n", game_data->tour.tour_score);
+	printf("hy = %d hx = %d\n", game_data->tour.highest_y, game_data->tour.highest_x);
 	if (areWordsValid(game_data->tour) == true)
 		game_data->tour.canValidate = true;
 }
@@ -414,11 +501,57 @@ void resetRuler(GameData *game_data, Vector2 mouseP) {
 	}
 }
 
+void refillRuler(GameData *game_data) {
+	Ruler *ptr = &game_data->ruler;
+	for (int i = 0; i < 7; i++) {
+		if (ptr->cell[i].x == -1)
+			continue;
+		int index = GetRandomValue(0, game_data->purse.purse_vect.size - 1);
+	 	int *val = vector_at(&game_data->purse.purse_vect, index);
+		ptr->value[i] = *val;
+		vector_erase_index(&game_data->purse.purse_vect, index);
+		ptr->rect[i] = (Rectangle) {
+			.x = DRAW_OFFSET_X + CELL_SIZE + (i * CELL_SIZE),
+			.y = DRAW_OFFSET_Y + (16 * CELL_SIZE),
+			.height = CELL_SIZE,
+			.width =CELL_SIZE,
+		};
+		ptr->base_rect[i] = ptr->rect[i];
+		ptr->dragging[i] = false;
+		ptr->modifier[i] = 0;
+		ptr->cell[i] = (Point) {-1, -1};
+	}
+}
+
+void matrixAdd(GameData *game_data) {
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			game_data->grid.grid[i][j] += game_data->grid.tour_grid[i][j];
+			game_data->grid.tour_grid[i][j] = 0;
+		}
+	}
+}
+
+void scoreAdd(GameData * game_data) {
+	game_data->score.total_score += game_data->tour.tour_score;
+	vector_push_back(&game_data->score.prev_scores, INT_L(game_data->tour.tour_score));
+}
+
+void validateTour(GameData *game_data, Vector2 mouseP) {
+	if (game_data->ruler.access == true && game_data->tour.canValidate == true && CheckCollisionPointRec(mouseP, game_data->tour.validate_rect)) {
+		game_data->tour.canValidate = false;
+		matrixAdd(game_data);
+		refillRuler(game_data);
+		scoreAdd(game_data);
+	}
+}
+
 void eventListener(GameData *game_data) {
 
 	Vector2 mouseP = {GetMouseX(), GetMouseY()};
 	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 		dragRuler(game_data, mouseP); 
+		validateTour(game_data, mouseP);
 	} else {
 		dropRuler(game_data, mouseP);
 	}
@@ -480,20 +613,61 @@ void mainMenu(GameData *game_data) {
 }
 
 void drawValidate(GameData *game_data) {
-	(void) game_data;
-	Rectangle validate_rect = {
-		.x = DRAW_OFFSET_X + CELL_SIZE * 10,
-		.y = DRAW_OFFSET_Y + CELL_SIZE * 15 + 5 + 0.25 * CELL_SIZE, 
- 		.width = CELL_SIZE * 5,
-		.height = CELL_SIZE * 2.5,
-	};
+	TourManager *ptr = &game_data->tour;
 	int text_size = MeasureText("JOUER", 40);
-	DrawRectangleRec(validate_rect, EMPTY_CELL_GRAY);
+	DrawRectangleRec(ptr->validate_rect, EMPTY_CELL_GRAY);
+
+	//outline green if all words are correct
 	if (game_data->tour.canValidate == true)
-		DrawRectangleLinesEx(validate_rect, 2, GREEN);
+		DrawRectangleLinesEx(ptr->validate_rect, 2, GREEN);
 	else
-		DrawRectangleLinesEx(validate_rect, 2, BLACK);
-	DrawText("JOUER", validate_rect.x + validate_rect.width / 2 - text_size / 2, validate_rect.y + validate_rect.height / 2 - 20, 40, BLACK);
+		DrawRectangleLinesEx(ptr->validate_rect, 2, BLACK);
+	DrawText("JOUER", ptr->validate_rect.x + ptr->validate_rect.width / 2 - text_size / 2, ptr->validate_rect.y + ptr->validate_rect.height / 2 - 20, 40, BLACK);
+}
+
+void drawPurse(GameData * game_data) {
+	char counter[10] = { 'S', 'A', 'C', ':', ' ', 0 };
+	char *ptr = ft_itoa(game_data->purse.purse_vect.size);
+	strcat(counter, ptr);
+	DrawText(counter, game_data->tour.validate_rect.x, game_data->tour.validate_rect.y + game_data->tour.validate_rect.height + CELL_SIZE / 5, 20, BLACK);
+	free(ptr);
+}
+
+void drawTourScore(GameData * game_data) {
+	if (game_data->tour.word_list[0].dir == 0)
+		return;
+	Rectangle score_rect = {
+		.x = DRAW_OFFSET_X + CELL_SIZE * game_data->tour.highest_x + CELL_SIZE - (CELL_SIZE / 3),
+		.y = DRAW_OFFSET_Y + CELL_SIZE * game_data->tour.highest_y + CELL_SIZE - (CELL_SIZE / 4),
+		.width =  (int)(CELL_SIZE / 1.5),
+		.height = (int)(CELL_SIZE / 2),
+	};
+	if (game_data->tour.canValidate)
+		DrawRectangleRounded(score_rect, 0.5, 15, LIME);
+	else
+		DrawRectangleRounded(score_rect, 0.5, 15, RED);
+	char *text = ft_itoa(game_data->tour.tour_score);
+	int text_size = MeasureText(text, 20);
+	DrawText(text, score_rect.x + score_rect.width / 2 - (text_size / 2), score_rect.y + score_rect.height / 2 - (10), 20, BLACK);
+	free(text);
+	DrawRectangleRoundedLinesEx(score_rect, 0.5, 15, 2, BLACK);
+}
+
+void drawTotalScore(GameData * game_data) {
+	int width = (screenWidth - (game_data->grid.grid_rect.width + (CELL_SIZE / 8)));
+	Rectangle s = {
+		.x = game_data->grid.grid_rect.width + (0.1 * width),
+		.y = DRAW_OFFSET_Y, 
+		.width = width * 0.9,
+		.height = CELL_SIZE,
+	};
+
+	char *text = ft_itoa(game_data->score.total_score);
+	int text_size = MeasureText(text, 20);
+	DrawRectangleRec(s, WHITE);
+	DrawRectangleLinesEx(s, 2, BLACK);
+	DrawText(text, s.x + s.width / 2 - (text_size / 2), s.y + s.height / 2 - (10), 20, BLACK);
+	free(text);
 }
 
 void RayLoop(GameData *game_data) {
@@ -509,6 +683,10 @@ void RayLoop(GameData *game_data) {
 			drawGrid(&game_data->grid);
 			drawValidate(game_data);
 			drawRuler(&game_data->ruler);
+			drawPurse(game_data);
+			drawTourWordOutline(game_data);
+			drawTourScore(game_data);
+			drawTotalScore(game_data);
 
 			eventListener(game_data);
 
@@ -533,4 +711,5 @@ int main(void) {
 	//free allocated memory
 	hashTableClear(game_data.hashTable);
 	vector_destruct(&game_data.purse.purse_vect);
+	vector_destruct(&game_data.score.prev_scores);
 }

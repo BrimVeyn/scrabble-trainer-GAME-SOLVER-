@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/03 14:42:30 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/04 17:09:40 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,9 @@
 
 #define BUFFER_SIZE 1024
 
-#define screenWidth  800
-#define screenHeight 800
-#define	CELL_SIZE		 40
+#define screenWidth  900
+#define screenHeight 900
+#define	CELL_SIZE		 45
 #define DRAW_OFFSET_X     5
 #define DRAW_OFFSET_Y     5
 
@@ -55,5 +55,8 @@ struct Ruler rulerInit(Purse *purse);
 struct Purse purseInit( void );
 void hashedWordInit(GameData *game_data);
 GameData gameDataInit( void );
+
+
+char	*ft_itoa(int n);
 
 #endif
