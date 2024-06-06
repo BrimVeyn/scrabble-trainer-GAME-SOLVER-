@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 13:24:36 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/28 10:18:45 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 12:58:01 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,9 +53,10 @@ void vector_quick_sort(Vector *vect);
 
 void vector_push_back(Vector *vect, void *value);
 void vector_push_sorted(Vector *vect, void *value);
+void vector_push_vector(Vector *v1, Vector *v2);
 
 void vector_add(Vector *vect, size_t index, void *to_add);
-void vector_print(Vector *vect);
+int vector_print(Vector *vect);
 
 Vector vector_construct(struct s_util_fun func);
 Vector vector_construct_size(size_t size, struct s_util_fun func);

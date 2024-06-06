@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/05 15:46:38 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/06 10:29:37 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 12:48:47 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,10 +154,23 @@ void asciiOrderedPrint(AsciiOrderedTable **table) {
 	}
 }
 
+Vector *asciiOrderedFind(AsciiOrderedTable **hashTable, char *to_find) {
+	int index = getHash(to_find);
+	if (hashTable[index] != NULL) {
+		struct AsciiOrderedTable *current = hashTable[index];
+		while (current != NULL) {
+			if (strcmp(current->key, to_find) == 0)
+				return &current->value_vect;
+			current = current->next;
+		}
+	}
+	return (Vector *) NULL;
+}
+
 void asciiOrderedTableInit(GameData *game_data) {
 	game_data->asciiTable = calloc(ASCII_ORDERED_SIZE, sizeof(AsciiOrderedTable *));
 
-	int sorted_fd = open("data/text.txt", O_RDONLY);
+	int sorted_fd = open("data/sortedByAscii.txt", O_RDONLY);
 	if (sorted_fd == -1)
 		exit(EXIT_FAILURE);
 

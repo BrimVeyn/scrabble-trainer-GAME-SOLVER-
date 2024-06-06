@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 13:33:12 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/27 14:33:44 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 14:41:49 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,9 @@ typedef int (*cmp_func)(void *, void *);
 
 #define IT_NEQ(it1, it2) ((it1).vector == (it2).vector && (it1).index != (it2).index)
 #define IT_EQ(it1, it2) ((it1).vector == (it2).vector && (it1).index == (it2).index)
+
+#define IABS(value) value > 0 ? value : -value
+#define BSIZE(value) value > 14 ? 14 : value
 
 #define Vector struct s_vector
 #define Iterator struct s_vector_iterator

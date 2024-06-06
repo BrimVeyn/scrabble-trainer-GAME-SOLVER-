@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/21 14:54:20 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/24 17:23:44 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 12:57:13 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,4 +40,9 @@ void vector_push_back(Vector *vect, void *value) {
 void vector_push_sorted(Vector *vect, void *value) {
 	size_t index = vector_binary_search_insert(vect, value);
 	vector_insert_at(vect, index, value);
+}
+
+void vector_push_vector(Vector *v1, Vector *v2) {
+	for (size_t i = 0; i < v2->size; i++)
+		vector_push_back(v1, v2->data[i]);
 }

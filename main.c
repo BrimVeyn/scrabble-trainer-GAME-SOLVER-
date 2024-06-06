@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/06 10:30:30 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 17:12:25 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -696,21 +696,306 @@ void RayLoop(GameData *game_data) {
 	CloseWindow();
 }
 
-int main(void) {
+char* sort_ascii(char* buf) {
+	size_t len = strlen(buf);
+	char *ptr = strdup(buf);
 
-	GameData game_data = gameDataInit();
-
-	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
-
-	// SetTargetFPS(60);
-
-	// RayLoop(&game_data);
-
-	//free allocated memory
-	hashTableClear(game_data.hashTable);
-	asciiOrderedClear(game_data.asciiTable);
-	vector_destruct(&game_data.purse.purse_vect);
-	vector_destruct(&game_data.score.prev_scores);
-	free(game_data.hashTable);
-	free(game_data.asciiTable);
+    // Simple bubble sort
+    for (size_t i = 0; i < len - 1; i++) {
+        for (size_t j = 0; j < len - i - 1; j++) {
+            if (ptr[j] > ptr[j + 1]) {
+                // Swap characters
+                char temp = ptr[j];
+                ptr[j] = ptr[j + 1];
+                ptr[j + 1] = temp;
+            }
+        }
+    }
+    return ptr;
 }
+
+char *str_append(char *s, char c) {
+	s[strlen(s)] = c;
+	return s;
+}
+
+char *str_remove(char *s) {
+	s[strlen(s) - 1] = 0;
+	return s;
+}
+
+void findPermutations(char *str, Vector *vect, size_t i, char *buf) {
+
+	if (i >= strlen(str))
+    {
+		if (strlen(buf) > 1)
+        {
+			char *tmp = sort_ascii(buf);
+			if (IT_EQ(vector_find(vect, tmp), it_end(vect)))
+				vector_push_back(vect, tmp);
+			free(tmp);
+        }
+		return;
+    }
+	buf = str_append(buf, str[i]);
+
+	findPermutations(str, vect, i + 1, buf);
+	buf = str_remove(buf);
+	findPermutations(str, vect, i + 1, buf);
+}
+
+Point *findObviousCellsToEvaluate(GameData * game_data) {
+	size_t size = 10;
+	Point *points = calloc(size, sizeof(Point));
+	size_t index = 0;
+
+	//Add by default all filled cells on the grid
+	for (int i = 0; i < 15; i++) {
+		for (int j = 0; j < 15; j++) {
+			if (game_data->grid.grid[i][j] != 0) {
+				if (index >= size) {
+					size *= 2;
+					points = realloc(points, size * sizeof(Point));
+				}
+				points[index++] = (Point) {
+					.y = i,
+					.x = j,
+				};
+			}
+		} 
+	}
+
+	return points;
+}
+
+void  printPoints(Point *points) {
+	for (int i = 0; points[i].x; i++) {
+		printf("P[%d] = { .y = %d, .x = %d }\n", i, points[i].y, points[i].x);
+	}
+}
+
+bool isSubset(const char *str1, const char *str2) {
+	if (!str1)
+		return true;
+
+    int len1 = strlen(str1);
+    int len2 = strlen(str2);
+    
+    for (int i = 0; i < len1; i++) {
+        bool found = false;
+        for (int j = 0; j < len2; j++) {
+            if (str1[i] == str2[j]) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+Vector findPossibleWords(char *letters, GameData * game_data, char *mandatory) {
+
+	// int count = 0;
+	char buffer[10] = {0};
+
+	//Init vector of possible permutations
+	Vector vect = vector_construct(STR_TYPE);
+	findPermutations(letters, &vect, 0, buffer);
+
+	//Init vector of all possible words with these permutations
+	Vector result = vector_construct(STR_TYPE);
+
+	vector_quick_sort(&vect);
+
+	//Fill result vector if the permutation is a valid one
+	for (size_t i = 0; i < vector_get_size(&vect); i++) {
+		if (!isSubset(mandatory, vect.data[i]))
+			continue;
+		Vector *tmp = asciiOrderedFind(game_data->asciiTable, vect.data[i]);
+		if (tmp)
+			vector_push_vector(&result, tmp);
+	}
+	vector_destruct(&vect);
+
+	//Not necessary but for debug readeability
+	// vector_quick_sort(&result);
+	// count += vector_print(&vect);
+	// printf("Possible word count = %d\n", count);
+	
+	return result;
+}
+
+typedef struct FindMatch {
+	char word[15];
+	int start;
+	int end;
+	int dir;
+	int score;
+	int save_coord;
+} FindMatch;
+
+int calcMatchWordScore(FindMatch word, int g_modifier[15][15], int g_tour[15][15], int scrabble) {
+	int modifier;
+	int letter_score;
+	int letter_multiplier; 
+	int word_score = 0;
+	int word_multiplier = 1;
+
+	for (int i = word.start; i <= word.end; i++) {
+		modifier = -1;
+		letter_multiplier = 1;
+		letter_score = k_points[word.word[i - word.start] - 'A'];
+
+		//update x and y from direction
+		int x = (word.dir == VERTICAL) ? word.save_coord : i;
+		int y = (word.dir == VERTICAL) ? i : word.save_coord;
+
+		
+		if (g_tour[y][x] == 0)
+			modifier = g_modifier[y][x];
+
+		//Update word and letter multiplier dependending on the modifier_grid value
+		switch (modifier) {
+			case DLETTER:
+				letter_multiplier *= 2;
+				break;
+			case TLETTER:
+				letter_multiplier *= 3;
+				break;
+			case DWORD:
+				word_multiplier *= 2;
+				break;
+			case TWORD:
+				word_multiplier *= 3;
+				break;
+		}
+		word_score += (letter_score * letter_multiplier);
+	}
+	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
+	return word_score * word_multiplier + scrabble;
+}
+
+FindMatch findBestWordMatch(GameData * game_data, char * word, Point p, Vector indexs, int scrabble) {
+
+	FindMatch best_match = {0};
+
+	for (size_t i = 0; i < indexs.size; i++) {
+		//try placement
+		FindMatch try = {
+			.word = {0},
+			.dir = VERTICAL,
+			.start = p.y - *((int *) indexs.data[i]),
+			.end = p.y - *((int *) indexs.data[i]) + strlen(word) - 1,
+			.save_coord = p.x,
+		};
+		strcat(try.word, word);
+		try.score = calcMatchWordScore(try, game_data->grid.modifier, game_data->grid.grid, scrabble);
+
+		if (try.score > best_match.score)
+			best_match = try;
+		
+	}
+	return best_match;
+}
+
+Vector getPossibleIndexs(char *str, char c) {
+	Vector new = vector_construct(INT_TYPE);
+
+	for (int i = 0; str[i]; i++) {
+		if (str[i] == c) {
+			vector_push_back(&new, INT_L(i));
+		}
+	}
+	return new;
+}
+
+void findMatchPrint(FindMatch match) {
+	printf("Best word = { .word = %s\n .start = %d,\n .end = %d,\n .saved_coord = %d,\n .score = %d }\n", match.word, match.start, match.end, match.save_coord, match.score);
+}
+														//ruler.str
+void evaluateACell(GameData * game_data, Point point, char *chevalet) {
+	//temporary
+	char list[15];
+	char *letter_ptr = (char *) &game_data->grid.grid[point.y][point.x];
+
+	bzero(list, 15);
+	strcat(list, chevalet);
+	strcat(list, letter_ptr);
+	//end
+
+	printf("list = %s\n", list);
+	Vector possible_words = findPossibleWords(list, game_data, letter_ptr);
+
+
+	//debug
+	// vector_print(&possible_words);
+
+	FindMatch overall_best_word = {.score = 0};
+
+	for (size_t i = 0; i < possible_words.size; i++) {
+		Vector tmp = getPossibleIndexs(possible_words.data[i], *letter_ptr);
+		int scrabble = 0;
+
+		if (strlen(chevalet) + strlen(letter_ptr) == strlen(possible_words.data[i]))
+			scrabble = 50;
+		
+		FindMatch bwm = findBestWordMatch(game_data, possible_words.data[i], point, tmp, scrabble);
+		if (bwm.score > overall_best_word.score)
+        {
+			overall_best_word = (FindMatch) { 
+				.start = bwm.start,
+				.end = bwm.end,
+				.dir = bwm.dir,
+				.score = bwm.score,
+				.save_coord = bwm.save_coord };
+			strcat(overall_best_word.word, bwm.word);
+        }
+
+		vector_destruct(&tmp);
+	}
+
+
+	printf("Count = %zu\n", possible_words.size);
+	findMatchPrint(overall_best_word);
+	vector_destruct(&possible_words);
+}
+
+// int main(void) {
+//
+// 	GameData game_data = gameDataInit();
+//
+// 	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+// 	//
+// 	// SetTargetFPS(60);
+// 	//
+// 	// RayLoop(&game_data);
+// 	
+// 	char chevalet[] = "NETSDEO";
+// 	
+// 	Point * obvious_cells = findObviousCellsToEvaluate(&game_data);
+// 	// Point * other_cells = findOtherCellsToEvaluate(&game_data);
+//
+// 	printPoints(obvious_cells);
+//
+// 	for (int i = 0; obvious_cells[i].x; i++) {
+// 		evaluateACell(&game_data, obvious_cells[i], chevalet);
+// 	}	
+//
+// 	// for (int i = 0; i < 1; i++) {
+// 	// 	evaluateACell(&game_data, obvious_cells[i], chevalet);
+// 	// }	
+//
+// 	free(obvious_cells);
+// 	// vector_print(&vect);
+//
+// 	hashTableClear(game_data.hashTable);
+// 	asciiOrderedClear(game_data.asciiTable);
+// 	vector_destruct(&game_data.purse.purse_vect);
+// 	vector_destruct(&game_data.score.prev_scores);
+// 	free(game_data.hashTable);
+// 	free(game_data.asciiTable);
+// }
