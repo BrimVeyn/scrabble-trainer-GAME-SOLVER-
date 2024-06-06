@@ -1,136 +1,175 @@
-/*******************************************************************************************
-*
-*   raylib [core] example - 2D Camera system
-*
-*   Example originally created with raylib 1.5, last time updated with raylib 3.0
-*
-*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
-*   BSD-like license that allows static linking with closed source software
-*
-*   Copyright (c) 2016-2024 Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   test.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/05 15:46:38 by bvan-pae          #+#    #+#             */
+/*   Updated: 2024/06/05 17:31:18 by bvan-pae         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "lib/raylib/include/raylib.h"
+#include "include/hashTableDefine.h"
+#include "struct.h"
 
-#define MAX_BUILDINGS   100
+void asciiOrderedClear(struct AsciiOrderedTable **table) {
+	for (int i = 0; i < ASCII_ORDERED_SIZE; i++) {
+		if (table[i] != NULL) {
+			struct AsciiOrderedTable * current = table[i];
+			struct AsciiOrderedTable * tmp;
+			while (current != NULL) {
+				tmp = current->next;
+				vector_destruct(&current->value_vect);
+				free(current->key);
+				free(current);
+				current = tmp;
+			}
+		}
+	}
+}
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+void asciiOrderedAdd(AsciiOrderedTable **table, AsciiOrderedTable *new, size_t index) {
+	if (table[index] == NULL) {
+		table[index] = new;
+	}
+	else {
+		struct AsciiOrderedTable *current = table[index];
+		while (current->next != NULL) {
+			current = current->next;
+		}
+		current->next = new;
+	}
+}
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera");
+AsciiOrderedTable *asciiOrderedNew(char *key, Vector *vect) {
+	struct AsciiOrderedTable *ptr = malloc(sizeof(struct AsciiOrderedTable));
 
-    Rectangle player = { 400, 280, 40, 40 };
-    Rectangle buildings[MAX_BUILDINGS] = { 0 };
-    Color buildColors[MAX_BUILDINGS] = { 0 };
+	ptr->key = strdup(key);
+	ptr->value_vect = *vect;
+	ptr->next = NULL;
+	return ptr;
+}
 
-    int spacing = 0;
-
-    for (int i = 0; i < MAX_BUILDINGS; i++)
-    {
-        buildings[i].width = (float)GetRandomValue(50, 200);
-        buildings[i].height = (float)GetRandomValue(100, 800);
-        buildings[i].y = screenHeight - 130.0f - buildings[i].height;
-        buildings[i].x = -6000.0f + spacing;
-
-        spacing += (int)buildings[i].width;
-
-        buildColors[i] = (Color){ GetRandomValue(200, 240), GetRandomValue(200, 240), GetRandomValue(200, 250), 255 };
+int getHashAscii(char* s) {
+	int n = strlen(s);
+    long long p = 31, m = 1e9 + 7;
+    long long hash = 0;
+    long long p_pow = 1;
+    for(int i = 0; i < n; i++) {
+        hash = (hash + (s[i] - 'a' + 1) * p_pow) % m;
+        p_pow = (p_pow * p) % m;
     }
+	if (hash < 0)
+		hash = -hash;
+	return hash % ASCII_ORDERED_SIZE;
+}
 
-    Camera2D camera = { 0 };
-    camera.target = (Vector2){ player.x + 20.0f, player.y + 20.0f };
-    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
-    camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
+// int count = 0;
 
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        // Player movement
-        if (IsKeyDown(KEY_RIGHT)) player.x += 2;
-        else if (IsKeyDown(KEY_LEFT)) player.x -= 2;
-
-        // Camera target follows player
-        camera.target = (Vector2){ player.x + 20, player.y + 20 };
-
-        // Camera rotation controls
-        if (IsKeyDown(KEY_A)) camera.rotation--;
-        else if (IsKeyDown(KEY_S)) camera.rotation++;
-
-        // Limit camera rotation to 80 degrees (-40 to 40)
-        if (camera.rotation > 40) camera.rotation = 40;
-        else if (camera.rotation < -40) camera.rotation = -40;
-
-        // Camera zoom controls
-        camera.zoom += ((float)GetMouseWheelMove()*0.05f);
-
-        if (camera.zoom > 3.0f) camera.zoom = 3.0f;
-        else if (camera.zoom < 0.1f) camera.zoom = 0.1f;
-
-        // Camera reset (zoom and rotation)
-        if (IsKeyPressed(KEY_R))
-        {
-            camera.zoom = 1.0f;
-            camera.rotation = 0.0f;
+void asciiOrderedFill(AsciiOrderedTable **table, char *raw_data) {
+    int i = 0;
+    
+    while (raw_data[i]) {
+        Vector vect = vector_construct(STR_TYPE);
+        char key[30] = {0};
+        
+        // Extract key
+        int j = 0;
+        while (raw_data[i] && raw_data[i] != '=') {
+            i++;
         }
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-
-            ClearBackground(RAYWHITE);
-
-            BeginMode2D(camera);
-
-                DrawRectangle(-6000, 320, 13000, 8000, DARKGRAY);
-
-                for (int i = 0; i < MAX_BUILDINGS; i++) DrawRectangleRec(buildings[i], buildColors[i]);
-
-                DrawRectangleRec(player, RED);
-
-                DrawLine((int)camera.target.x, -screenHeight*10, (int)camera.target.x, screenHeight*10, GREEN);
-                DrawLine(-screenWidth*10, (int)camera.target.y, screenWidth*10, (int)camera.target.y, GREEN);
-
-            EndMode2D();
-
-            DrawText("SCREEN AREA", 640, 10, 20, RED);
-
-            DrawRectangle(0, 0, screenWidth, 5, RED);
-            DrawRectangle(0, 5, 5, screenHeight - 10, RED);
-            DrawRectangle(screenWidth - 5, 5, 5, screenHeight - 10, RED);
-            DrawRectangle(0, screenHeight - 5, screenWidth, 5, RED);
-
-            DrawRectangle( 10, 10, 250, 113, Fade(SKYBLUE, 0.5f));
-            DrawRectangleLines( 10, 10, 250, 113, BLUE);
-
-            DrawText("Free 2d camera controls:", 20, 20, 10, BLACK);
-            DrawText("- Right/Left to move Offset", 40, 40, 10, DARKGRAY);
-            DrawText("- Mouse Wheel to Zoom in-out", 40, 60, 10, DARKGRAY);
-            DrawText("- A / S to Rotate", 40, 80, 10, DARKGRAY);
-            DrawText("- R to reset Zoom and Rotation", 40, 100, 10, DARKGRAY);
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
+        
+        // Check if we reached the end of raw_data
+        if (!raw_data[i]) {
+            vector_destruct(&vect);
+            break;
+        }
+        
+        i++;  // Skip the '=' character
+        
+        while (raw_data[i] && raw_data[i] != '\n') {
+            key[j++] = raw_data[i++];
+        }
+        
+        // Skip the newline character
+        if (raw_data[i] == '\n') {
+            i++;
+        }
+        
+        // Extract values for the vector
+        while (raw_data[i] && raw_data[i] != '-') {
+            char buffer[30] = {0};
+            int k = 0;
+            
+            while (raw_data[i] && raw_data[i] != '=') {
+                if (raw_data[i] == '-') {
+                    break;
+                }
+                i++;
+            }
+            
+            i += 2;  // Skip the '=' and the next character
+            
+            while (raw_data[i] && raw_data[i] != '-' && raw_data[i] != '\n') {
+                buffer[k++] = raw_data[i++];
+            }
+            
+            if (strlen(buffer) > 0) {
+				// count++;
+                vector_push_back(&vect, buffer);
+            }
+            
+            // Skip to the next item or exit if end of vector
+            if (raw_data[i] == '-') {
+                i++;
+            }
+        }
+        
+        struct AsciiOrderedTable *ptr = asciiOrderedNew(key, &vect);
+        asciiOrderedAdd(table, ptr, getHashAscii(ptr->key));
     }
+}
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+void asciiOrderedInit(AsciiOrderedTable **table) {
+	for (int i = 0; i < ASCII_ORDERED_SIZE; i++) {
+		table[i] = NULL;
+	}
+}
 
-    return 0;
+void asciiOrderedPrint(AsciiOrderedTable **table) {
+	for (int i = 0; i < ASCII_ORDERED_SIZE; i++) {
+		if (table[i] != NULL) {
+			struct AsciiOrderedTable *current = table[i];
+			printf("-- %d\t", i);
+			while (current != NULL) {
+				printf("w: %-10s\n", current->key);
+				vector_print(&current->value_vect);
+				current = current->next;
+			}
+			printf("\n");
+		}
+		else
+			printf("-- %d\tNULL\n", i);
+	}
+}
+
+void asciiOrderedTableInit(GameData *game_data) {
+	asciiOrderedInit(game_data->asciiTable);
+
+	int sorted_fd = open("sortedByAscii.txt", O_RDONLY);
+	if (sorted_fd == -1)
+		exit(EXIT_FAILURE);
+
+	char *raw_sorted = getRawData(sorted_fd);
+
+	asciiOrderedFill(game_data->asciiTable, raw_sorted);
+	free(raw_sorted);
+
+	// asciiOrderedPrint(table);
+	// asciiOrderedClear(table);
+
+	// printf("count = %d\n", count);
+	
+
 }

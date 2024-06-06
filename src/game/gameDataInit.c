@@ -1,14 +1,15 @@
 
 #include "../../include/hashTableDefine.h"
+#include "struct.h"
 
 GameData gameDataInit( void ) {
 	struct GameData game_data = {
 		.grid = gridInit(),
 		.purse = purseInit(),
 	};
-	printf("ici\n");
 
 	hashedWordInit(&game_data);
+	asciiOrderedTableInit(&game_data);
 
 	game_data.grid.grid_rect = (Rectangle) {
 		.x = DRAW_OFFSET_X,

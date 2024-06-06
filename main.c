@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/04 17:30:00 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 10:30:30 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,75 +177,48 @@ Neighbor contactPoint(Point c, GameData *game_data) {
 	return new;
 }
 
-Match getVertWord(Point ruler_cell, GameData *game_data, int dir) {
+Match getWordMatch(Point ruler_cell, GameData *game_data, int direction) {
 	Match m = {
 		.word = {0},
-		.start = ruler_cell.y,
-		.end = ruler_cell.y,
-		.save_coord = ruler_cell.x,
-		.dir = dir,
-		.validated = false,
-	};
-	
-	int *x = dir == 1 ? &m.start : &m.save_coord;
-	int *y = dir == 1 ? &m.save_coord : &m.start;
-
-	while (game_data->grid.grid[*y][*x] != 0 || game_data->grid.tour_grid[m.start][ruler_cell.x] != 0) {
-		m.start--;
-	}
-	m.start++;
-	while (game_data->grid.grid[m.end][ruler_cell.x] != 0 || game_data->grid.tour_grid[m.end][ruler_cell.x] != 0) {
-		m.end++;
-	}
-	m.end--;
-	if (m.start == m.end)
-		return m;
-	else {
-		int i = 0, start = m.start;
-		while (start <= m.end) {
-			m.word[i] += game_data->grid.grid[start][ruler_cell.x];
-			m.word[i] += game_data->grid.tour_grid[start][ruler_cell.x];
-			i++, start++; 
-		}
-		m.word[i] = 0;
-		return m;
-	}
-}
-
-Match getHoriWord(Point ruler_cell, GameData *game_data) {
-	Match m = {
-		.word = {0},
-		.start = ruler_cell.x,
-		.end = ruler_cell.x,
-		.save_coord = ruler_cell.y,
-		.dir = 2,
+		.start = direction == VERTICAL ? ruler_cell.y : ruler_cell.x,
+		.end = 0,
+		.save_coord = direction == VERTICAL ? ruler_cell.x : ruler_cell.y,
+		.dir = direction,
 		.validated = false,
 	};
 
-	while (game_data->grid.grid[ruler_cell.y][m.start] != 0 || game_data->grid.tour_grid[ruler_cell.y][m.start] != 0) {
+	//Set x and y on direction
+	int *x = m.dir == VERTICAL ? &m.save_coord : &m.start;
+	int *y = m.dir == VERTICAL ? &m.start : &m.save_coord;
+
+	//Find start of the word
+	while (game_data->grid.grid[*y][*x] != 0 || game_data->grid.tour_grid[*y][*x] != 0) {
 		m.start--;
 	}
+	//Iterate on more time to match the actual start of the word
 	m.start++;
-	while (game_data->grid.grid[ruler_cell.y][m.end] != 0 || game_data->grid.tour_grid[ruler_cell.y][m.end] != 0) {
+
+	//Reset x and y on direction
+	m.end = m.start;
+	x = m.dir == VERTICAL ? &m.save_coord : &m.end;
+	y = m.dir == VERTICAL ? &m.end : &m.save_coord;
+
+	//Fill and find the end coord of the word
+	int i = 0;
+	while (game_data->grid.grid[*y][*x] != 0 || game_data->grid.tour_grid[*y][*x] != 0) {
+		m.word[i] += game_data->grid.grid[*y][*x];
+		m.word[i] += game_data->grid.tour_grid[*y][*x]; 
 		m.end++;
+		i++;
 	}
 	m.end--;
-	if (m.start == m.end)
-		return m;
-	else {
-		int i = 0, start = m.start;
-		while (start <= m.end) {
-			m.word[i] += game_data->grid.grid[ruler_cell.y][start];
-			m.word[i] += game_data->grid.tour_grid[ruler_cell.y][start];
-			i++, start++; 
-		}
-		m.word[i] = 0;
-		return m;
-	}
+
+	return m;
 }
 
 int countRulerOnGrid(Ruler ruler) {
 	int x = 0;
+
 	for (int i = 0; i < 7; i++) {
 		if (ruler.cell[i].x != -1)
 			x++;
@@ -258,33 +231,50 @@ int checkAlignment(GameData *game_data) {
 	int l_x = 16, l_y = 16;
 	int h_x = -1, h_y = -1;
 	bool ref = true;
+
+	//If there are no rulers on the grid return false
 	if (countRulerOnGrid(game_data->ruler) == 1)
 		return 0;
+
 	else {
 		for (int i = 0; i < 7; i++) {
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].x > h_x) h_x = game_data->ruler.cell[i].x;
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].y > h_y) h_y = game_data->ruler.cell[i].y;
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].x < l_x) l_x = game_data->ruler.cell[i].x;
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].y < l_y) l_y = game_data->ruler.cell[i].y;
-			if (game_data->ruler.cell[i].x != -1 && ref) {
+			//Skip ruler evaluation if its not on the grid
+			if (game_data->ruler.cell[i].x == -1)
+				continue;
+			//Set coordinate reference to the first ruler on the grid.
+			if (ref) {
 				x_ref = game_data->ruler.cell[i].x;
 				y_ref = game_data->ruler.cell[i].y;
 				ref = false;
 				continue;
 			}
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].x != x_ref)
+
+			//Update coordinate reference to match the farthest right and down
+			if (game_data->ruler.cell[i].x > h_x) h_x = game_data->ruler.cell[i].x;
+			if (game_data->ruler.cell[i].y > h_y) h_y = game_data->ruler.cell[i].y;
+			if (game_data->ruler.cell[i].x < l_x) l_x = game_data->ruler.cell[i].x;
+			if (game_data->ruler.cell[i].y < l_y) l_y = game_data->ruler.cell[i].y;
+
+			//Reset ruler's ref if a ruler is not the same axis
+			if (game_data->ruler.cell[i].x != x_ref)
 				x_ref = -1;
-			if (game_data->ruler.cell[i].x != -1 && game_data->ruler.cell[i].y != y_ref)
+			if (game_data->ruler.cell[i].y != y_ref)
 				y_ref = -1;
 		}
+
+		//If rulers aren't aligned return false
 		if (x_ref == -1 && y_ref == -1)
 			return -1;
+
+		//If they're aligned on x axis but there's en empty cell in between them return false
 		if (x_ref != -1) {
 			for (; l_y <= h_y; l_y++) {
 				if (game_data->grid.grid[l_y][x_ref] == 0 && game_data->grid.tour_grid[l_y][x_ref] == 0)
 					return -1;
 			}
 		}
+
+		//If they're aligned on y axis but there's en empty cell in between them return false
 		if (y_ref != -1) {
 			for (; l_x <= h_x; l_x++) {
 				if (game_data->grid.grid[y_ref][l_x] == 0 && game_data->grid.tour_grid[y_ref][l_x] == 0)
@@ -296,6 +286,7 @@ int checkAlignment(GameData *game_data) {
 }
 
 bool findWordList(Match word_list[30], Match m) {
+	//return true if a Match m is a duplicate of any in the word list
 	for (int i = 0; word_list[i].dir != 0; i++) {
 		if (!strcmp(word_list[i].word, m.word) && word_list[i].start == m.start && word_list[i].end == m.end && word_list[i].dir == m.dir)
 			return true;
@@ -304,6 +295,7 @@ bool findWordList(Match word_list[30], Match m) {
 }
 
 bool areWordsValid(TourManager tour) {
+	//return true if all words in the list are found in the hash_table
 	if (tour.word_list[0].dir == 0)
 		return false;
 	for (int i = 0; tour.word_list[i].dir != 0; i++) {
@@ -324,30 +316,27 @@ void updateTourHighest(TourManager * tour, int x, int y) {
 }
 
 int calcWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], TourManager *tour) {
+	int modifier;
 	int letter_score;
 	int letter_multiplier; 
 	int word_score = 0;
 	int word_multiplier = 1;
-	int modifier;
 
 	for (int i = word.start; i <= word.end; i++) {
-		modifier = 0;
-		letter_score = 0;
+		modifier = -1;
 		letter_multiplier = 1;
-		letter_score += k_points[word.word[i - word.start] - 'A'];
+		letter_score = k_points[word.word[i - word.start] - 'A'];
 
-		if (word.dir == 2) {
-			updateTourHighest(tour, i, word.save_coord);
-			if (g_tour[word.save_coord][i] != 0)
-				modifier = g_modifier[word.save_coord][i];
-        } else if (word.dir == 1) {
-			updateTourHighest(tour, word.save_coord, i);
-			if (g_tour[i][word.save_coord] != 0)
-				modifier = g_modifier[i][word.save_coord];
-        }
-		else
-			modifier = -1;
+		//update x and y from direction
+		int x = (word.dir == VERTICAL) ? word.save_coord : i;
+		int y = (word.dir == VERTICAL) ? i : word.save_coord;
 
+		updateTourHighest(tour, x, y);
+		
+		if (g_tour[y][x] != 0)
+			modifier = g_modifier[y][x];
+
+		//Update word and letter multiplier dependending on the modifier_grid value
 		switch (modifier) {
 			case DLETTER:
 				letter_multiplier *= 2;
@@ -364,7 +353,7 @@ int calcWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], TourMa
 		}
 		word_score += (letter_score * letter_multiplier);
 	}
-	// printf("word score = %d\n", word_score * word_multiplier);
+	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
 	return word_score * word_multiplier;
 }
 
@@ -379,66 +368,75 @@ int calcWordListScore(GameData * game_data) {
 }
 
 void drawTourWordOutline(GameData * game_data) {
-	for (int i = 0; i < game_data->tour.word_list[i].dir != 0; i++) {
-		if (hashTableFind(game_data->hashTable, game_data->tour.word_list[i].word) != -1) {
+	//Draw red or green outlines depending if the word is in the hashtable or not
+	for (int i = 0; game_data->tour.word_list[i].dir != 0; i++) {
+		// printf("outline drawn for word %s\n", game_data->tour.word_list[i].word);
+		if (game_data->tour.word_list[i].validated) {
 			DrawRectangleLinesEx(game_data->tour.word_list[i].match_rect, 5, (Color){ 0, 228, 48, 150 });
 		} else {
 			DrawRectangleLinesEx(game_data->tour.word_list[i].match_rect, 5, (Color){ 230, 41, 55, 150 });
 		}
 	}
 }
-// Helper function to process a word (vertical or horizontal)
-void processWord(Match m, GameData *game_data, int *j) {
-    if (findWordList(game_data->tour.word_list, m) == false) {
-        game_data->tour.word_list[(*j)++] = m;
-        if (hashTableFind(game_data->hashTable, m.word)!= -1) {
-            game_data->tour.word_list[*j - 1].validated = true;
-        }
-    }
+
+void processWord(GameData *game_data, int *j, Match m) {
+	if (findWordList(game_data->tour.word_list, m) == false) {
+		game_data->tour.word_list[(*j)++] = m;
+		if (hashTableFind(game_data->hashTable, m.word) != -1) {
+			game_data->tour.word_list[(*j) - 1].validated = true;
+		}
+	}
+}
+
+Rectangle getMatchRect(Match m, int dir, Ruler ruler, int i) {
+	int x = (dir == VERTICAL) ? ruler.rect[i].x : DRAW_OFFSET_X + (m.start * CELL_SIZE);
+	int y = (dir == VERTICAL) ? DRAW_OFFSET_Y + (m.start * CELL_SIZE) : ruler.rect[i].y;
+	int width = (dir == VERTICAL) ? CELL_SIZE + 1 : (m.end - m.start + 1) * CELL_SIZE;
+	int height = (dir == VERTICAL) ? (m.end - m.start + 1) * CELL_SIZE : CELL_SIZE + 1;
+
+	return (Rectangle) { x, y, width, height };
 }
 
 void checkTourWord(GameData *game_data) {
 	int j = 0;
 	game_data->tour.canValidate = false;
 	bzero(game_data->tour.word_list, sizeof(struct Match) * 30);
-	
+
 	//Check Alignement and return if ruler's cell are not on the same axis
 	if (checkAlignment(game_data) == -1)
 		return ;
 
-	//Iterate trhrough ruler'cell
 	for (int i = 0; i < 7; i++) {
-		if (game_data->ruler.cell[i].x != -1) {
-			Neighbor neighbors = contactPoint(game_data->ruler.cell[i], game_data);
-			if (!neighbors.valid)
-				continue;
-			else {
-				if (neighbors.dir[NORTH] || neighbors.dir[SOUTH]) {
-					Match m = getVertWord(game_data->ruler.cell[i], game_data, 1);
-					m.match_rect = (Rectangle) {
-						.x = game_data->ruler.rect[i].x,
-						.y = DRAW_OFFSET_Y + (m.start * CELL_SIZE),
-						.width = CELL_SIZE + 1,
-						.height = (m.end - m.start + 1) * CELL_SIZE,
-					};
-					processWord(m, game_data, &j);
-				}
-			}
-			if (neighbors.dir[EAST] || neighbors.dir[WEST]) {
-				Match m = getHoriWord(game_data->ruler.cell[i], game_data);
-				m.match_rect = (Rectangle) {
-					.x = DRAW_OFFSET_X + (m.start * CELL_SIZE),
-					.y = game_data->ruler.rect[i].y,
-					.width = (m.end - m.start + 1) * CELL_SIZE,
-					.height = CELL_SIZE + 1,
-				};
-				processWord(m, game_data, &j);
-			}
+		//If rulers not on the grid continue
+		if (game_data->ruler.cell[i].x == -1)
+			continue;
+
+		//Inspect neighborhood
+		Neighbor neighbors = contactPoint(game_data->ruler.cell[i], game_data);
+
+		//If the evaluated ruler has no neighbors on the grid, continue;
+		if (!neighbors.valid)
+			continue;
+
+		//Find VERTICAL word
+		if (neighbors.dir[NORTH] || neighbors.dir[SOUTH]) {
+			Match m = getWordMatch(game_data->ruler.cell[i], game_data, VERTICAL);
+			m.match_rect = getMatchRect(m, VERTICAL, game_data->ruler, i);
+			processWord(game_data, &j, m);
+		}
+		//Find HORIZONTAL word
+		if (neighbors.dir[EAST] || neighbors.dir[WEST]) {
+			Match m = getWordMatch(game_data->ruler.cell[i], game_data, HORIZONTAL);
+			m.match_rect = getMatchRect(m, HORIZONTAL, game_data->ruler, i);
+			processWord(game_data, &j, m);
 		}
 	}
+	//Compute the addition of all words found
 	game_data->tour.tour_score = calcWordListScore(game_data);
-	printf("tour score = %d\n", game_data->tour.tour_score);
-	printf("hy = %d hx = %d\n", game_data->tour.highest_y, game_data->tour.highest_x);
+	// printf("tour score = %d\n", game_data->tour.tour_score);
+	// printf("hy = %d hx = %d\n", game_data->tour.highest_y, game_data->tour.highest_x);
+	
+	//If all words are valid, you can validate the tour
 	if (areWordsValid(game_data->tour) == true)
 		game_data->tour.canValidate = true;
 }
@@ -702,14 +700,17 @@ int main(void) {
 
 	GameData game_data = gameDataInit();
 
-	InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
 
-	SetTargetFPS(60);
+	// SetTargetFPS(60);
 
-	RayLoop(&game_data);
+	// RayLoop(&game_data);
 
 	//free allocated memory
 	hashTableClear(game_data.hashTable);
+	asciiOrderedClear(game_data.asciiTable);
 	vector_destruct(&game_data.purse.purse_vect);
 	vector_destruct(&game_data.score.prev_scores);
+	free(game_data.hashTable);
+	free(game_data.asciiTable);
 }

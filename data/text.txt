@@ -1,0 +1,25 @@
+----------
+KEY=AA
+vect[0] = AA
+----------
+----------
+KEY=AAEEILNN
+vect[0] = AALENIEN
+----------
+----------
+KEY=AAEEEILNNN
+vect[0] = AALENIENNE
+----------
+----------
+KEY=AAEEEILNNNS
+vect[0] = AALENIENNES
+----------
+----------
+KEY=AAEEILNNS
+vect[0] = AALENIENS
+----------
+----------
+KEY=AAS
+vect[0] = AAS
+vect[1] = ASA
+----------

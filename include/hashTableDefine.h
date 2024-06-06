@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/04 17:09:40 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/05 17:24:43 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,5 +58,9 @@ GameData gameDataInit( void );
 
 
 char	*ft_itoa(int n);
+
+
+void asciiOrderedTableInit(GameData * game_data);
+void asciiOrderedClear(AsciiOrderedTable **table);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:42 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/04 16:54:00 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/06 10:24:41 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #define RESET_COLOR "\033[0m"
 
 #define TABLE_SIZE 150000
+#define ASCII_ORDERED_SIZE 150000
 #define ORDERED_WORD_LIST_PATH "data/Data.txt"
 
 #define C_WHITE (Color){ 200, 200, 200, 255 }
@@ -36,11 +37,22 @@ enum {
 };
 
 enum {
+	VERTICAL = 1,
+	HORIZONTAL = 2,
+};
+
+enum {
 	NORTH,
 	SOUTH,
 	EAST,
 	WEST,
 };
+
+typedef struct AsciiOrderedTable {
+	char *key;
+	Vector value_vect;
+	struct AsciiOrderedTable *next;
+} AsciiOrderedTable;
 
 typedef struct Point {
 	int x;
@@ -118,7 +130,8 @@ typedef struct TourManager {
 } TourManager;
 
 typedef struct GameData {
-	struct word *		hashTable[TABLE_SIZE];
+	struct word **		hashTable;
+	struct AsciiOrderedTable	**asciiTable;
 	struct Grid			grid;
 	struct Purse		purse;
 	struct Ruler		ruler;

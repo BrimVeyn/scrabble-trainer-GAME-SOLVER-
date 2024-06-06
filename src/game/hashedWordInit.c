@@ -2,7 +2,7 @@
 #include "../../include/hashTableDefine.h"
 
 void hashedWordInit(GameData *game_data) {
-	hashTableInit(game_data->hashTable);
+	game_data->hashTable = calloc(TABLE_SIZE, sizeof(word *));
 
 	int fd = open(ORDERED_WORD_LIST_PATH, O_RDONLY);
 	if (fd == -1)

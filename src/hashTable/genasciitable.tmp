@@ -1,0 +1,97 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   asciiOrderedTableInit.c                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/05 13:49:22 by bvan-pae          #+#    #+#             */
+/*   Updated: 2024/06/05 17:27:52 by bvan-pae         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../include/hashTableDefine.h"
+
+char* sort_ascii(char* buf) {
+    // Copy the input buffer to a local buffer for sorting
+    char buffer[30];
+    strncpy(buffer, buf, sizeof(buffer) - 1);
+    buffer[sizeof(buffer) - 1] = '\0';  // Ensure null termination
+
+    size_t len = strlen(buffer);
+
+    // Simple bubble sort
+    for (size_t i = 0; i < len - 1; i++) {
+        for (size_t j = 0; j < len - i - 1; j++) {
+            if (buffer[j] > buffer[j + 1]) {
+                // Swap characters
+                char temp = buffer[j];
+                buffer[j] = buffer[j + 1];
+                buffer[j + 1] = temp;
+            }
+        }
+    }
+
+    // Copy sorted buffer back to input buffer if desired
+    strcpy(buf, buffer);
+
+    // Return a duplicate of the sorted string
+    return strdup(buffer);
+}
+
+int main(void) {
+	
+	int fd_in = open("data/Data.txt", O_RDONLY);
+	char *raw_data = getRawData(fd_in);
+
+	Vector svect = vector_construct(STR_TYPE);
+	Vector vect = vector_construct(STR_TYPE);
+
+	char buffer[30];
+	char *sorted;
+
+	for (int i = 0; raw_data[i]; i++)
+    {
+		if (raw_data[i] == '\n')
+			continue;
+		int j = i;
+		for (; raw_data[j] != '\n'; j++) {
+			buffer[j - i] = raw_data[j];
+		}
+		buffer[j - i] = 0;
+		vector_push_back(&vect, buffer);
+		i = j;
+		sorted = sort_ascii(buffer);
+		vector_push_back(&svect, sorted);
+		free(sorted);
+    }
+
+
+	Vector result = vector_construct(STR_TYPE);
+
+	while (vector_get_size(&svect) > 0) {
+		char *to_find = strdup(svect.data[0]);
+		Vector res = vector_construct(STR_TYPE);
+		while (true) {
+			Iterator it = vector_find(&svect, to_find);
+			if (IT_EQ(it, it_end(&svect)))
+				break;
+			vector_push_back(&res, vect.data[it.index]);
+			vector_erase_index(&vect, it.index);
+			it_erase(&it);
+		}
+		// printf("----------\n");
+		// printf("KEY=%s\n", to_find);
+		vector_print(&res);
+		// printf("----------\n");
+		vector_destruct(&res);
+		free(to_find);
+	}
+
+	
+	free(raw_data);
+	vector_destruct(&vect);
+	vector_destruct(&svect);
+	vector_destruct(&result);
+
+}
