@@ -13,7 +13,7 @@
 #include "../../include/Vector/vector_define.h"
 
 void vector_add(Vector *vect, size_t index, void *to_add) {
-	if (index >= vect->size || index < 0) {
+	if (index >= vect->size) {
 		if (SILENT == 0)
 			out_of_range();
 		return ;

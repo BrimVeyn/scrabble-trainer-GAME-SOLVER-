@@ -48,6 +48,15 @@ enum {
 	WEST,
 };
 
+typedef struct FindMatch {
+	char word[15];
+	int start;
+	int end;
+	int dir;
+	int score;
+	int save_coord;
+} FindMatch;
+
 typedef struct AsciiOrderedTable {
 	char *key;
 	Vector value_vect;

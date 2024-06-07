@@ -13,7 +13,7 @@
 #include "../../include/Vector/vector_define.h"
 
 void *vector_at(Vector *vect, size_t index) {
-	if ((index) >= vect->size || (index) < 0)  {
+	if ((index) >= vect->size)  {
 		if (SILENT == 0)
 			out_of_range();
 		return NULL;

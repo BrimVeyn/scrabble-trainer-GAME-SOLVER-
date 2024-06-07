@@ -13,7 +13,7 @@
 #include "../../include/Vector/vector_define.h"
 
 void vector_clear(Vector *vect) {
-	for (size_t i = vect->size - 1; i >= 0 && i < vect->size; i--) {
+	for (size_t i = vect->size - 1; i < vect->size; i--) {
 		vector_erase_index(vect, i);
 	}
 	vect->size = 0;

@@ -64,4 +64,44 @@ void asciiOrderedTableInit(GameData * game_data);
 void asciiOrderedClear(AsciiOrderedTable **table);
 Vector *asciiOrderedFind(AsciiOrderedTable **hashTable, char *to_find);
 
+void findMatchPrint(FindMatch match);
+void printGrid(int grid[15][15]);
+void  printPoints(Point *points);
+void drawRuler(Ruler *ruler);
+TextVar getTextVar(char *text, int font_size);
+TextVar getText(int c, int font_size);
+Color getColor(int c);
+
+int countRulerOnGrid(Ruler ruler);
+int checkAlignment(GameData *game_data);
+void updateTourHighest(TourManager * tour, int x, int y);
+int calcWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], TourManager *tour);
+int calcWordListScore(GameData * game_data);
+void drawTourWordOutline(GameData * game_data);
+void drawValidate(GameData *game_data);
+void drawPurse(GameData * game_data);
+void drawTourScore(GameData * game_data);
+void drawTotalScore(GameData * game_data);
+void mainMenu(GameData *game_data);
+void resetRuler(GameData *game_data, Vector2 mouseP);
+void refillRuler(GameData *game_data);
+void matrixAdd(GameData *game_data);
+void scoreAdd(GameData * game_data);
+void validateTour(GameData *game_data, Vector2 mouseP);
+void checkTourWord(GameData *game_data);
+void processWord(GameData *game_data, int *j, Match m);
+Rectangle getMatchRect(Match m, int dir, Ruler ruler, int i);
+void dragRuler(GameData *game_data, Vector2 mouseP);
+void dropRuler(GameData *game_data, Vector2 mouseP);
+Match getWordMatch(Point ruler_cell, GameData *game_data, int direction);
+Point findClosestEmpty(Point cell, Grid grid);
+Neighbor contactPoint(Point c, GameData *game_data);
+void drawGrid(Grid *grid);
+bool findWordList(Match word_list[30], Match m);
+bool areWordsValid(TourManager tour);
+char* sort_ascii(char* buf);
+char *str_append(char *s, char c);
+char *str_remove(char *s);
+int calcMatchWordScore(FindMatch word, int g_modifier[15][15], int g_tour[15][15], int scrabble);
+
 #endif

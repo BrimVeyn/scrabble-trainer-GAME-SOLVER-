@@ -7,11 +7,17 @@ LDFLAGS			:= -lm -Ilib/raylib/include -Ilib_vector/include -Llib/raylib/lib -Lve
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)
 
-SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) $(wildcard src/tree/*.c) $(wildcard src/game/*.c) main.c
+SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) \
+				   $(wildcard src/tree/*.c) $(wildcard src/game/*.c) \
+				   $(wildcard src/event/*.c) $(wildcard src/draw/*.c) \
+				   $(wildcard src/utils/*.c) main.c
 
 OBJ             := $(SRC:src/%.c=objects/%.o)
 
-OBJDIR          := objects objects/src objects/hashTable objects/tree objects/game
+OBJDIR          := objects objects/src objects/hashTable \
+				   objects/tree objects/game \
+				   objects/event objects/draw \
+				   objects/utils
 
 DEF_COLOR       := \033[0;39m
 GRAY            := \033[0;90m
