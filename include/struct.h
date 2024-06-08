@@ -87,6 +87,7 @@ typedef struct TextVar {
 
 typedef struct Grid {
 	int			grid[15][15];
+    int         copy[15][15];
 	int			tour_grid[15][15];
 	int			modifier[15][15];
 	Rectangle	grid_rect;

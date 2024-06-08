@@ -81,31 +81,7 @@ void findPermutations(char *str, Vector *vect, size_t i, char *buf) {
 	findPermutations(str, vect, i + 1, buf);
 }
 
-Point *findObviousCellsToEvaluate(GameData * game_data) {
-	size_t size = 10;
-	Point *points = calloc(size, sizeof(Point));
-	size_t index = 0;
-
-	//Add by default all filled cells on the grid
-	for (int i = 0; i < 15; i++) {
-		for (int j = 0; j < 15; j++) {
-			if (game_data->grid.grid[i][j] != 0) {
-				if (index >= size) {
-					size *= 2;
-					points = realloc(points, size * sizeof(Point));
-				}
-				points[index++] = (Point) {
-					.y = i,
-					.x = j,
-				};
-			}
-		} 
-	}
-    //Shoudl have a list of placed words on the grid
-
-	return points;
-}
-
+//Find if constraint is part of the permutatiomn
 bool isSubset(const char *str1, const char *str2) {
 	if (!str1)
 		return true;
@@ -185,6 +161,7 @@ FindMatch findBestWordMatch(GameData * game_data, char * word, Point p, Vector i
 	return best_match;
 }
 
+//Find all repetition of the target letter, meaning how many different placement we can evaluate
 Vector getPossibleIndexs(char *str, char c) {
 	Vector new = vector_construct(INT_TYPE);
 
@@ -196,7 +173,7 @@ Vector getPossibleIndexs(char *str, char c) {
 	return new;
 }
 
-														//ruler.str
+
 void evaluateACell(GameData * game_data, Point point, char *chevalet) {
 	//temporary
 	char list[15];
@@ -243,33 +220,76 @@ void evaluateACell(GameData * game_data, Point point, char *chevalet) {
 	vector_destruct(&possible_words);
 }
 
+char *rulerToStr(GameData * game_data) {
+    char *ptr = calloc(7, sizeof(char));
+
+    for (int i = 0; i < 7; i++) {
+        ptr[i] = game_data->ruler.value[i];
+    }
+    return ptr;
+}
+
+
+//simply makes a copy of grid.grid to grid.copy to work on it
+void copyGrid(GameData * game_data) {
+    for (int i = 0; i < 15; i++) {
+        for (int j = 0; j < 15; j++) {
+            game_data->grid.copy[i][j] = game_data->grid.grid[i][j];
+        }
+    }
+}
+
+void markAdjacentCells(Point c, Grid * grid) {
+	if (c.y + 1 < 15 && grid->copy[c.y + 1][c.x] == 0)
+        grid->copy[c.y + 1][c.x] = '$';
+	if (c.x + 1 < 15 && grid->copy[c.y][c.x + 1] == 0)
+        grid->copy[c.y][c.x + 1] = '$';
+	if (c.y - 1 > 0 && grid->copy[c.y - 1][c.x] == 0)
+        grid->copy[c.y - 1][c.x] = '$';
+	if (c.x - 1 > 0 && grid->copy[c.y][c.x - 1] == 0)
+        grid->copy[c.y][c.x - 1] = '$';
+}
+
+//fill all adjacent cells with a marker, so we can evaluate them smartly
+void fillAdjacentCells(GameData * game_data) {
+    for (int i = 0; i < 15; i++) {
+        for (int j = 0; j < 15; j++) {
+            if (game_data->grid.copy[i][j] != 0 && game_data->grid.copy[i][j] != '$') {
+                markAdjacentCells((Point) { .y = i, .x = j }, &game_data->grid);
+            }
+        }
+    }
+}
+
 int main(void) {
 
 	GameData game_data = gameDataInit();
 
-	InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
-
-	SetTargetFPS(60);
-
-	RayLoop(&game_data);
+	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+	//
+	// SetTargetFPS(60);
+	//
+	// RayLoop(&game_data);
 	
-	char chevalet[] = "EVLIEBW";
+    //Algo start//
+
+    copyGrid(&game_data);
+    fillAdjacentCells(&game_data);
+    printGrid(game_data.grid.copy);
+	char *chevalet = rulerToStr(&game_data);
+    (void) chevalet;
 	
-	Point * obvious_cells = findObviousCellsToEvaluate(&game_data);
-	// Point * other_cells = findOtherCellsToEvaluate(&game_data);
+	// for (int i = 0; obvious_cells[i].x; i++) {
+	// 	evaluateACell(&game_data, obvious_cells[i], chevalet);
+	// }	
 
-	printPoints(obvious_cells);
-
-	for (int i = 0; obvious_cells[i].x; i++) {
-		evaluateACell(&game_data, obvious_cells[i], chevalet);
-	}	
+    //Algo end//
 
 	// for (int i = 0; i < 1; i++) {
 	// 	evaluateACell(&game_data, obvious_cells[i], chevalet);
 	// }	
 
-    printGrid(game_data.grid.grid);
-	free(obvious_cells);
+    // printGrid(game_data.grid.grid);
 	// vector_print(&vect);
 
 	hashTableClear(game_data.hashTable);

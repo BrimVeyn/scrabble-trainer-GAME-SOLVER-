@@ -40,8 +40,10 @@ Match getWordMatch(Point ruler_cell, GameData *game_data, int direction) {
 }
 
 void processWord(GameData *game_data, int *j, Match m) {
+    //If word isn't already in the list, add it
 	if (findWordList(game_data->tour.word_list, m) == false) {
 		game_data->tour.word_list[(*j)++] = m;
+        //If word in a known word, validate it
 		if (hashTableFind(game_data->hashTable, m.word) != -1) {
 			game_data->tour.word_list[(*j) - 1].validated = true;
 		}

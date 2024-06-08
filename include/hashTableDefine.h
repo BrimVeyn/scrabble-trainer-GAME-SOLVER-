@@ -15,9 +15,9 @@
 
 #define BUFFER_SIZE 1024
 
-#define screenWidth  900
-#define screenHeight 900
-#define	CELL_SIZE		 45
+#define screenWidth  1200
+#define screenHeight 1200
+#define	CELL_SIZE		 55
 #define DRAW_OFFSET_X     5
 #define DRAW_OFFSET_Y     5
 
