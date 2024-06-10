@@ -1,6 +1,5 @@
 #include "../../include/hashTableDefine.h"
 
-
 void findMatchPrint(FindMatch match) {
 	printf("Best word = { .word = %s\n .start = %d,\n .end = %d,\n .saved_coord = %d,\n .score = %d }\n", match.word, match.start, match.end, match.save_coord, match.score);
 }

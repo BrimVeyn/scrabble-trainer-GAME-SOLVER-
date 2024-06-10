@@ -63,7 +63,7 @@ int calcWordListScore(GameData * game_data) {
 }
 
 //Calculate score for the bestWordFinding algortihm
-int calcMatchWordScore(FindMatch word, int g_modifier[15][15], int g_tour[15][15], int scrabble) {
+int calcMatchWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], int scrabble) {
 	int modifier;
 	int letter_score;
 	int letter_multiplier; 
@@ -102,4 +102,44 @@ int calcMatchWordScore(FindMatch word, int g_modifier[15][15], int g_tour[15][15
 	}
 	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
 	return word_score * word_multiplier + scrabble;
+}
+
+int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]) {
+	int modifier;
+	int letter_score;
+	int letter_multiplier; 
+	int word_score = 0;
+	int word_multiplier = 1;
+
+	for (int i = word.start; i <= word.end; i++) {
+		modifier = -1;
+		letter_multiplier = 1;
+		letter_score = k_points[word.word[i - word.start] - 'A'];
+
+		//update x and y from direction
+		int x = (word.dir == VERTICAL) ? word.save_coord : i;
+		int y = (word.dir == VERTICAL) ? i : word.save_coord;
+
+		if (g_grid[y][x] == 0)
+			modifier = g_modifier[y][x];
+
+		//Update word and letter multiplier dependending on the modifier_grid value
+		switch (modifier) {
+			case DLETTER:
+				letter_multiplier *= 2;
+				break;
+			case TLETTER:
+				letter_multiplier *= 3;
+				break;
+			case DWORD:
+				word_multiplier *= 2;
+				break;
+			case TWORD:
+				word_multiplier *= 3;
+				break;
+		}
+		word_score += (letter_score * letter_multiplier);
+	}
+	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
+	return word_score * word_multiplier;
 }

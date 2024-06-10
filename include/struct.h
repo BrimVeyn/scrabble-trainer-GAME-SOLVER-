@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:42 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/06 10:24:41 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/10 14:43:00 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "../lib_vector/include/struct.h"
 
 #define DARK_RED "\x1b[48;5;1m\x1b[30m"
+#define DARK_REDF "\x1b[38;5;1m"
 #define LIGHT_RED "\x1b[48;5;216m\x1b[30m"
 #define LIGHT_BLUE "\x1b[48;5;39m\x1b[30m"
 #define w_WHITE "\x1b[48;5;15m\x1b[30m"
@@ -39,6 +40,7 @@ enum {
 enum {
 	VERTICAL = 1,
 	HORIZONTAL = 2,
+	BOTH = 4,
 };
 
 enum {
@@ -47,6 +49,12 @@ enum {
 	EAST,
 	WEST,
 };
+
+typedef struct MatchVector {
+	struct Match *data;
+	size_t size;
+	size_t capacity;
+}	MatchVector;
 
 typedef struct FindMatch {
 	char word[15];
@@ -125,6 +133,7 @@ typedef struct Match {
 	int	end;
 	int	dir;
 	int	save_coord;
+	int score;
 	bool  validated;
 	Rectangle match_rect;
 } Match;

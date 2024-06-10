@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/06 12:49:00 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/10 17:20:14 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,17 @@ bool areWordsValid(TourManager tour);
 char* sort_ascii(char* buf);
 char *str_append(char *s, char c);
 char *str_remove(char *s);
-int calcMatchWordScore(FindMatch word, int g_modifier[15][15], int g_tour[15][15], int scrabble);
+int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]);
+int calcMatchWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], int scrabble);
 
+MatchVector matchVectorInit( void );
+void matchVectorPushBack(MatchVector * vect, Match match);
+void matchVectorPrint(MatchVector * vect);
+void matchVectorDestruct (MatchVector * vect);
+void matchVectorPushVector(MatchVector *v1, MatchVector *v2);
+void matchVectorQuickSort(MatchVector *vect);
+
+
+MatchVector computeAdjacent(GameData * game_data, Vector * word_list, Point cell);
+bool isLetter(char c);
 #endif
