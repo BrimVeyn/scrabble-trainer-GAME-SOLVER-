@@ -169,9 +169,15 @@ void TrieCollectSuggestions(TrieNode *const node, const char *prefix, List *sugg
 	{
 		if (node->children[i])
 		{
-			char prefix_buffer[128];
-			snprintf(prefix_buffer, sizeof(prefix_buffer), "%s%c", prefix, (int32_t) ('a' + i));
-			TrieCollectSuggestions(node->children[i], prefix_buffer, suggestions);
+			uint64_t prefix_len = strlen(prefix);
+			uint64_t new_len = prefix_len + 2;
+			char    *prefix_buffer = (char *) malloc(new_len);
+			if (prefix_buffer)
+			{
+				snprintf(prefix_buffer, new_len, "%s%c", prefix, (uint8_t) ('a' + i));
+				TrieCollectSuggestions(node->children[i], prefix_buffer, suggestions);
+				free(prefix_buffer);
+			}
 		}
 	}
 }

@@ -158,10 +158,12 @@ Match findBestWordMatch(GameData * game_data, char * word, Point p, Vector index
 
 	if (isCellVertHori(game_data, p))
 		return best_match;
-	else if (isCellVert(game_data, p))
-		;
-	else if (isCellHori(game_data, p))
-		;
+	else if (isCellVert(game_data, p)){		
+		(void)p;
+	}
+	else if (isCellHori(game_data, p)) {
+		(void)p;
+	}
 
 	for (size_t i = 0; i < indexs.size; i++) {
 		//try placement
