@@ -24,6 +24,20 @@ TrieNode *TrieNodeCreate(void)
 	return (self);
 }
 
+TrieNode *TrieNodeFindPrefixNode(TrieNode *const self, const char *prefix)
+{
+	TrieNode *temp;
+
+	temp = self;
+	while (*prefix && temp)
+	{
+		const uint64_t index = *prefix - 'a';
+		temp = temp->children[index];
+		++prefix;
+	}
+	return (self);
+}
+
 bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t depth)
 {
 	if (!self)
@@ -131,6 +145,35 @@ bool TrieSearch(Trie *const self, const char *const key)
 bool TrieRemove(Trie *const self, const char *const key)
 {
 	return (TrieNodeRemoveChild(self->root, key, 0));
+}
+
+List *TrieSuggest(Trie *const self, const char *prefix)
+{
+	List     *suggestions;
+	TrieNode *prefix_node;
+
+	suggestions = listCreate();
+	prefix_node = TrieNodeFindPrefixNode(self->root, prefix);
+	if (prefix_node)
+		TrieCollectSuggestions(prefix_node, strdup(prefix), suggestions);
+	return (suggestions);
+}
+
+void TrieCollectSuggestions(TrieNode *const node, const char *prefix, List *suggestions)
+{
+	if (!node)
+		return;
+	if (node->is_end_of_word)
+		listPushBack(suggestions, (uintptr_t) strdup(prefix));
+	for (uint64_t i = 0; i < ALPHABET_SIZE; ++i)
+	{
+		if (node->children[i])
+		{
+			char prefix_buffer[128];
+			snprintf(prefix_buffer, sizeof(prefix_buffer), "%s%c", prefix, (int32_t) ('a' + i));
+			TrieCollectSuggestions(node->children[i], prefix_buffer, suggestions);
+		}
+	}
 }
 
 Trie *TrieDestroy(Trie *const self)

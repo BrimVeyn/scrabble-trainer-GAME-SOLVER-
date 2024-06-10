@@ -13,7 +13,9 @@
 #ifndef TRIE_H
 #define TRIE_H
 
+#include <stdio.h>
 #define ALPHABET_SIZE 26
+#include "list.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -33,7 +35,8 @@ typedef struct Trie
 } Trie;
 
 TrieNode *TrieNodeCreate(void);
-void TrieNodeDestroy(TrieNode *self);
+TrieNode *TrieNodeFindPrefixNode(TrieNode *const self, const char *prefix);
+void      TrieNodeDestroy(TrieNode *self);
 bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t depth);
 bool TrieNodeIsEmpty(TrieNode *self);
 
@@ -41,6 +44,10 @@ Trie *TrieCreate(void);
 void  TrieInsert(Trie *const self, const char *const key);
 bool  TrieSearch(Trie *const self, const char *const key);
 bool  TrieRemove(Trie *const self, const char *const key);
+List *TrieSuggest(Trie *const self, const char *prefix);
+void TrieCollectSuggestions(TrieNode *const node, const char *prefix, List *suggestions);
 Trie *TrieDestroy(Trie *const self);
+
+// EXPERIMENTAL
 
 #endif
