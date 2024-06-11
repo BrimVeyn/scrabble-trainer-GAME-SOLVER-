@@ -10,6 +10,7 @@ DEPS            := $(OBJ:.o=.d)
 SRC             := $(wildcard src/*.c) $(wildcard src/hashTable/*.c) \
 				   $(wildcard src/tree/*.c) $(wildcard src/game/*.c) \
 				   $(wildcard src/event/*.c) $(wildcard src/draw/*.c) \
+				   $(wildcard src/trie/*.c) $(wildcard src/list/*.c) \
 				   $(wildcard src/utils/*.c) main.c
 
 OBJ             := $(SRC:src/%.c=objects/%.o)
@@ -17,6 +18,7 @@ OBJ             := $(SRC:src/%.c=objects/%.o)
 OBJDIR          := objects objects/src objects/hashTable \
 				   objects/tree objects/game \
 				   objects/event objects/draw \
+				   objects/trie objects/list\
 				   objects/utils
 
 DEF_COLOR       := \033[0;39m

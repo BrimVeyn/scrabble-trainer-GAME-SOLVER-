@@ -14,5 +14,7 @@
 #include <unistd.h>
 
 void not_found( void ) {
-	write(STDERR_FILENO, "Error: not found\n", 17);
+	int a;
+	a = write(STDERR_FILENO, "Error: not found\n", 17);
+	(void)a;
 }

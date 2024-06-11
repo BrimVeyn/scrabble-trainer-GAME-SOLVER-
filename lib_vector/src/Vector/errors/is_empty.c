@@ -13,5 +13,7 @@
 #include "../../../include/Vector/vector_define.h"
 
 void is_empty( void ) {
-	write(STDERR_FILENO, "Error: vector is empty\n", 23);
+	int a;
+	a = write(STDERR_FILENO, "Error: vector is empty\n", 23);
+	(void)a;
 }

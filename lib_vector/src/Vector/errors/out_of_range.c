@@ -12,6 +12,9 @@
 
 #include "../../../include/Vector/vector_define.h"
 
-void out_of_range( void ) {
-	write(STDERR_FILENO, "Error: index out of range\n", 26);
+void out_of_range(void)
+{
+	int a;
+	a = write(STDERR_FILENO, "Error: index out of range\n", 26);
+	(void) a;
 }

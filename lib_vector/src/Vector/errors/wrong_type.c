@@ -14,5 +14,7 @@
 #include <unistd.h>
 
 void wrong_type( void ) {
-	write(STDERR_FILENO, "Error: trying to get a wrong type\n", 34);
+	int a;
+	a = write(STDERR_FILENO, "Error: trying to get a wrong type\n", 34);
+	(void)a;
 }
