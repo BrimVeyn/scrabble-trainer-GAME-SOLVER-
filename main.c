@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/10 17:28:06 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/11 17:36:35 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,29 +151,39 @@ bool isCellVertHori(GameData * game_data, Point cell) {
 	return (isCellVert(game_data, cell) && isCellHori(game_data, cell));
 }
 
+bool isOutOfBound(Match try) {
+	if (try.start > 14 || try.start < 0)
+		return true;
+	if (try.end > 14 || try.start < 0)
+		return true;
+	return false;
+}
 
 Match findBestWordMatch(GameData * game_data, char * word, Point p, Vector indexs, int scrabble) {
 
 	Match best_match = {0};
+	int dir = 0;
 
 	if (isCellVertHori(game_data, p))
 		return best_match;
 	else if (isCellVert(game_data, p)){		
-		(void)p;
+		dir = VERTICAL;
 	}
 	else if (isCellHori(game_data, p)) {
-		(void)p;
+		dir = HORIZONTAL;
 	}
 
 	for (size_t i = 0; i < indexs.size; i++) {
 		//try placement
 		Match try = {
 			.word = {0},
-			.dir = VERTICAL,
-			.start = p.y - *((int *) indexs.data[i]),
-			.end = p.y - *((int *) indexs.data[i]) + strlen(word) - 1,
-			.save_coord = p.x,
+			.dir = dir,
+			.start = (dir == VERTICAL) ? p.y - *((int *) indexs.data[i]) : p.x - *((int *) indexs.data[i]),
+			.end = (dir == VERTICAL) ? p.y - *((int *) indexs.data[i]) + strlen(word) - 1 : p.x - *((int *) indexs.data[i]) + strlen(word) - 1,
+			.save_coord = (dir == VERTICAL) ? p.x : p.y,
 		};
+		if (isOutOfBound(try))
+			continue;
 		strcat(try.word, word);
 		try.score = calcMatchWordScore(try, game_data->grid.modifier, game_data->grid.grid, scrabble);
 
@@ -261,29 +271,32 @@ void markAdjacentCells(Point c, Grid * grid) {
         grid->copy[c.y][c.x - 1] = '$';
 }
 
-void markFurther(GameData * game_data, int dir) {
-	int i;
-	int j;
-	int *x = (dir == VERTICAL) ? &i : &j; 
-	int *y = (dir == VERTICAL) ? &j : &i; 
-	int count;
-	for (i = 0; i < 15; i++) {
-		count = 0;
-		for (j = 0; j < 15; j++) {
-			while (j < 15 && game_data->grid.copy[*y][*x] == '$')
-            {
-				j++;
-				count++;
-            }
-			if (j < 15 && game_data->grid.copy[*y][*x] == '-' && count > 1)
-            {
-				game_data->grid.copy[(*y)++][*x] = ':';
-				while (j < 15 && game_data->grid.copy[*y][*x] == 0 && count > 1)
-					game_data->grid.copy[(*y)++][*x] = '|';
-            }
-			while (j < 15 && game_data->grid.copy[*y][*x] == 0 && count > 1)
-				game_data->grid.copy[*y][(*x)++] = '-';
-			count = 0;
+void markFurther(GameData * game_data) {
+
+	int y, x;
+
+	for (y = 0; y < 15; y++) {
+		for (x = 0; x < 15; x++) {
+			if (x < 15 &&  y < 15 && !isHori(game_data, (Point) {y, x}) && game_data->grid.copy[y][x] == '$') {
+				printf("Point | = .y %d .x %d\n", y, x);
+				int tmp = y;
+				while (tmp < 15 && (game_data->grid.copy[tmp][x] == '$' || game_data->grid.copy[tmp][x] == '|'))
+					tmp++;
+				if (tmp < 15 && game_data->grid.copy[tmp][x] == '-')
+					game_data->grid.copy[tmp++][x] = ':';
+				while (tmp < 15 && game_data->grid.copy[tmp][x] == 0)
+					game_data->grid.copy[tmp++][x] = '|';
+			}
+			if (x < 15 &&  y < 15 && !isVert(game_data, (Point) {y, x}) && (game_data->grid.copy[y][x] == '$' || game_data->grid.copy[y][x] == '|')) {
+				printf("Point - = .y %d .x %d\n", y, x);
+				x++;
+				if (game_data->grid.copy[y][x] == '|')
+					game_data->grid.copy[y][x++] = ':';
+				while (x < 15 && (game_data->grid.copy[y][x] == 0 || game_data->grid.copy[y][x] == ':'))
+					game_data->grid.copy[y][x++] = '-';
+			}
+			if (isVertHori(game_data, (Point){y, x}) && !isLetter(game_data->grid.copy[y][x]))
+				game_data->grid.copy[y][x] = ':';
 		}
 	}
 }
@@ -318,9 +331,9 @@ void fillAdjacentCells(GameData * game_data, char *chevalet) {
         for (int j = 0; j < 15; j++) {
 			if (isLetter(game_data->grid.copy[i][j]))
             {
-				MatchVector tmp = evaluateACell(game_data, (Point) { .y = i, .x = j }, chevalet);
-				matchVectorPushVector(&vect, &tmp);
-				matchVectorDestruct(&tmp);
+				// MatchVector tmp = evaluateACell(game_data, (Point) { .y = i, .x = j }, chevalet);
+				// matchVectorPushVector(&vect, &tmp);
+				// matchVectorDestruct(&tmp);
             }
             if (game_data->grid.copy[i][j] != 0 && game_data->grid.copy[i][j] != '$') {
                 markAdjacentCells((Point) { .y = i, .x = j }, &game_data->grid);
@@ -328,21 +341,15 @@ void fillAdjacentCells(GameData * game_data, char *chevalet) {
         }
     }
 
-
-	// MatchVector tmp = evaluateAdjacents(game_data, chevalet);
-	// matchVectorPushVector(&vect, &tmp);
-	// matchVectorDestruct(&tmp);
-
-
+	MatchVector tmp = evaluateAdjacents(game_data, chevalet);
+	matchVectorPushVector(&vect, &tmp);
+	matchVectorDestruct(&tmp);
 
 	matchVectorQuickSort(&vect);
 	matchVectorPrint(&vect);
 	matchVectorDestruct(&vect);
 
-	
-
-	markFurther(game_data, HORIZONTAL);
-	markFurther(game_data, VERTICAL);
+	// markFurther(game_data);
 	printGrid(game_data->grid.copy);
 	// exit(1);
 	// game_data->grid.copy[8][11] = '$';
@@ -436,7 +443,6 @@ int getScoreFind(int copy[15][15], Match match, MatchVar vars, GameData * game_d
 			return restoreGrid(copy, save, match, vars), -1;
 
 		// printf("word = %s, coords = %d, coorde = %d\n", word.word, word.start, word.end);
-		printf("MAISSSSSSSSSSSSSSSSSS\n");
 		score += findWordScore(word, game_data->grid.modifier, game_data->grid.grid);
 	}
 	
@@ -447,14 +453,25 @@ int getScoreFind(int copy[15][15], Match match, MatchVar vars, GameData * game_d
 	return score;
 }
 
-Match tryWord(GameData * game_data, char * word, Point cell, int dir) {
+Match tryWord(GameData * game_data, char * word, Point cell, int dir, int offset) {
 	Match match = {.score = 0};
 
 	match.dir = (dir == HORIZONTAL) ? HORIZONTAL : VERTICAL,
-	match.start = (dir == HORIZONTAL) ? cell.y - strlen(word) + 1 : cell.x -strlen(word) + 1,
-	match.end = (dir == HORIZONTAL) ? cell.y : cell.x, 
+	match.start = ((dir == HORIZONTAL) ? cell.y - strlen(word) + 1 : cell.x -strlen(word) + 1) + offset,
+	match.end = ((dir == HORIZONTAL) ? cell.y : cell.x) + offset, 
 	match.save_coord = (dir == HORIZONTAL) ? cell.x : cell.y,
 	strcat(match.word, word);
+
+	if (!strcmp(match.word, "RETAISE"))
+	{
+		printf("ICI");
+		printf("match.start = %d, match.end = %d, match.save_coord %d\n", match.start, match.end, match.save_coord);
+	}
+
+	if (isOutOfBound(match)) {
+		match.dir = -1;
+		return match;
+	}
 
 	MatchVar vars = {
 		.dx = (match.dir == VERTICAL) ? 0 : 1,
@@ -463,14 +480,16 @@ Match tryWord(GameData * game_data, char * word, Point cell, int dir) {
 		.y = (match.dir == VERTICAL) ?  &match.start : &match.save_coord,
 	};
 
-	if ((match.score = getScoreFind(game_data->grid.copy, match, vars, game_data)) == -1)
-	{
+	if ((match.score = getScoreFind(game_data->grid.copy, match, vars, game_data)) == -1) {
 		match.dir = -1;
-		printf("failed\n");
 		return match;
 	}
+
 	match.score += findWordScore(match, game_data->grid.modifier, game_data->grid.grid);
+	if (strlen(match.word) == 7)
+		match.score += SCRABBLE;
 	printf("WORD = %s, SCORE = %d\n", match.word, match.score);
+
 	return match;
 }
 
@@ -489,33 +508,149 @@ bool isVert(GameData * game_data, Point cell) {
 }
 
 bool isVertHori(GameData * game_data, Point cell) {
-	return ((game_data->grid.copy[cell.x - 1][cell.y] != '$' && game_data->grid.copy[cell.x - 1][cell.y] != 0)
-	|| (game_data->grid.copy[cell.x + 1][cell.y] != '$' && game_data->grid.copy[cell.x + 1][cell.y] != 0))
-	&& ((game_data->grid.copy[cell.x][cell.y - 1] != '$' && game_data->grid.copy[cell.x][cell.y - 1] != 0)
-	|| (game_data->grid.copy[cell.x][cell.y + 1] != '$' && game_data->grid.copy[cell.x][cell.y + 1] != 0));
+	return (isVert(game_data, cell) && isHori(game_data, cell));
+}
+
+void addTry(GameData * game_data, char *word, Point cell, int dir, MatchVector * vect) {
+	for (int offset = 0; word[offset]; offset++) {
+		Match try = tryWord(game_data, word, cell, dir, offset);
+		if (try.score == -1 || try.dir == -1)
+			continue;
+		matchVectorPushBack(vect, try);
+	}
 }
 
 MatchVector computeAdjacent(GameData * game_data, Vector * word_list, Point cell) {
 	//try placing all words --> add to a vector
 	MatchVector vect = matchVectorInit();
-	Match try;
 	for (Iterator it = it_begin(word_list); IT_NEQ(it, it_end(word_list)); it_pp(&it)) {
 		if (isVertHori(game_data, cell)) {
-			continue;
+			// addTry(game_data, it.vector->data[it.index], cell, HORIZONTAL, &vect);
+			// addTry(game_data, it.vector->data[it.index], cell, HORIZONTAL, &vect);
 		}
 		if (isHori(game_data, cell)) {
-			try = tryWord(game_data, it.vector->data[it.index], cell, HORIZONTAL);
-			if (try.score != -1)
-				matchVectorPushBack(&vect, try);
+			addTry(game_data, it.vector->data[it.index], cell, HORIZONTAL, &vect);
 		}
 		else if (isVert(game_data, cell)){
-			try = tryWord(game_data, it.vector->data[it.index], cell, VERTICAL);
-			if (try.score != -1)
-				matchVectorPushBack(&vect, try);
+			addTry(game_data, it.vector->data[it.index], cell, VERTICAL, &vect);
 		}
 	}
 	// matchVectorPrint(&vect);
 	return vect;
+}
+
+typedef struct Range {
+	int s;
+	int e;
+} Range; 
+
+typedef struct Placement {
+	char c[15];
+	int pos[15];
+} Placement;
+
+typedef struct Constraints {
+	struct Range *range;
+	struct Placement *pos;
+	size_t size;
+	size_t capacity;
+} Constraints;
+
+#define GRID_SIZE 15
+
+void printConstraint(const Constraints c) {
+	printf("-----Constraint----\n");
+	for (size_t i = 0; i < c.size; i++) {
+		printf("RANGE = %d-%d\n", c.range[i].s, c.range[i].e);
+		for (size_t j = 0; c.pos[i].c[j]; j++) {
+			printf("POS[%zu] = %c %d\n", i, c.pos[i].c[j], c.pos[i].pos[j]);
+        }
+		printf("~~~~~~~~~~\n");
+	}
+	printf("--------------");
+}
+
+Constraints constraintsInit( void ) {
+	Constraints new;
+	new.pos = calloc(10, sizeof(struct Placement));
+	new.range = calloc(10, sizeof(struct Range));
+	new.size = 0;
+	new.capacity = 10;
+	return new;
+}
+
+void fillPlacementAndRange(Constraints * curr, int *x, char *c, int min, int max) {
+	if (curr->size == curr->capacity)
+		curr->pos = realloc(curr->pos, curr->capacity * 2);
+
+	curr->range[curr->size].s = min;
+	curr->range[curr->size].e = max;
+	for (int i = 0; c[i]; i++) {
+		curr->pos[curr->size].pos[i] = x[i];
+		curr->pos[curr->size].c[i] = c[i];
+	}
+
+	curr->size++;
+}
+
+void rGetConstraints(GameData * game_data, Constraints * curr, Point p, char *c, int *pos, size_t max_len, int i, int it, size_t holes, int max_limit) {
+	while(i < GRID_SIZE && !isLetter(game_data->grid.copy[p.y][i])) {
+		holes++;
+		i++;
+	}
+
+	if (i == GRID_SIZE)
+		return;
+
+	while(i < GRID_SIZE && isLetter(game_data->grid.copy[p.y][i])) {
+		c[it] = game_data->grid.copy[p.y][i];
+		pos[it++] = i;
+		i++;
+	}
+
+	int min = i;
+	int max = i;
+	bool hole;
+
+	while(max < GRID_SIZE && !isLetter(game_data->grid.copy[p.y][max])) {
+		hole = true;
+		max++;
+	}
+	if (hole == true)
+		max--;
+
+	if (max_limit)
+		fillPlacementAndRange(curr, pos, c, min, max_limit);
+	else
+		fillPlacementAndRange(curr, pos, c, min, max);
+	rGetConstraints(game_data, curr, p, c, pos, max_len, i, it, holes, max_limit);
+}
+
+
+Constraints getConstraints(GameData * game_data, Point p, size_t max_len) {
+	Constraints curr = constraintsInit();
+	char c[15] = {0};
+	int pos[15] = {0};
+	rGetConstraints(game_data, &curr, p, c, pos, max_len, 0, 0, 0, 0);
+
+	return curr;
+}
+
+void evaluateGrid(GameData * game_data, char *chevalet) {
+	(void) chevalet;
+	size_t max_len = strlen(chevalet);
+	//This function will be called twice with a matrix rotation 90 in between
+	for (int Y = 0; Y < GRID_SIZE; Y++) {
+		for (int X = 0; X < GRID_SIZE; X++) {
+			//Create a point to the current cell;
+			Point p = { .y = Y, .x = X };
+			//Compute all constraints on this grid
+			Constraints cell_c = getConstraints(game_data, p, max_len);
+			printConstraint(cell_c);
+			break;
+		}
+		break;
+	}
 }
 
 
@@ -532,15 +667,19 @@ int main(void) {
     //Algo start//
 
     copyGrid(&game_data);
-    // printGrid(game_data.grid.copy);
 
 	// char *chevalet = rulerToStr(&game_data);
-	char chevalet[] = "LSKSIIE";
-	fillAdjacentCells(&game_data, chevalet);
+	char chevalet[] = "CLMERET";
+	evaluateGrid(&game_data, chevalet);
+
+	printf("------GRID GRID-----\n");
+	printGrid(game_data.grid.grid);
+	printf("----------------------\n");
+	// fillAdjacentCells(&game_data, chevalet);
 
 
 	printf("LETTERS = %s\n", chevalet);
-    printGrid(game_data.grid.copy);
+    // printGrid(game_data.grid.copy);
 
 	// free(chevalet);
 

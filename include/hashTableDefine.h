@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/10 17:20:14 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/11 10:55:49 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,4 +115,7 @@ void matchVectorQuickSort(MatchVector *vect);
 
 MatchVector computeAdjacent(GameData * game_data, Vector * word_list, Point cell);
 bool isLetter(char c);
+bool isVert(GameData * game_data, Point cell);
+bool isHori(GameData * game_data, Point cell);
+bool isVertHori(GameData * game_data, Point cell);
 #endif

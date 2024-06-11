@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:42 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/10 14:43:00 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/11 14:10:40 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,18 @@ enum {
 	DLETTER = 2,
 	TWORD = 3,
 	TLETTER = 4,
+	SCRABBLE = 50,
 };
 
 enum {
 	VERTICAL = 1,
 	HORIZONTAL = 2,
 	BOTH = 4,
+};
+
+enum {
+	STARTS_THERE,
+	ENDS_THERE,
 };
 
 enum {
