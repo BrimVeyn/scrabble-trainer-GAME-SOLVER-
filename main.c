@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/11 17:36:35 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/12 17:21:51 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,24 +62,6 @@ void RayLoop(GameData *game_data) {
 	CloseWindow();
 }
 
-void findPermutations(char *str, Vector *vect, size_t i, char *buf) {
-	if (str && i >= strlen(str)) {
-		if (strlen(buf) > 1) {
-			char *tmp = sort_ascii(buf);
-			if (IT_EQ(vector_find(vect, tmp), it_end(vect)))
-				vector_push_back(vect, tmp);
-			free(tmp);
-        }
-		return;
-    }
-	buf = str_append(buf, str[i]);
-
-	findPermutations(str, vect, i + 1, buf);
-
-	buf = str_remove(buf);
-
-	findPermutations(str, vect, i + 1, buf);
-}
 
 //Find if constraint is part of the permutatiomn
 bool isSubset(const char *str1, const char *str2) {
@@ -105,10 +87,29 @@ bool isSubset(const char *str1, const char *str2) {
     return true;
 }
 
+void findPermutations(char *str, Vector *vect, size_t i, char *buf) {
+	if (str && i >= strlen(str)) {
+		if (strlen(buf) > 1) {
+			char *tmp = sort_ascii(buf);
+			if (IT_EQ(vector_find(vect, tmp), it_end(vect)))
+				vector_push_back(vect, tmp);
+			free(tmp);
+        }
+		return;
+    }
+	buf = str_append(buf, str[i]);
+
+	findPermutations(str, vect, i + 1, buf);
+
+	buf = str_remove(buf);
+
+	findPermutations(str, vect, i + 1, buf);
+}
+
 Vector findPossibleWords(char *letters, GameData * game_data, char *mandatory) {
 
 	// int count = 0;
-	char buffer[10] = {0};
+	char buffer[15] = {0};
 
 	//Init vector of possible permutations
 	Vector vect = vector_construct(STR_TYPE);
@@ -442,8 +443,9 @@ int getScoreFind(int copy[15][15], Match match, MatchVar vars, GameData * game_d
 		else if (hashTableFind(game_data->hashTable, word.word) == -1)
 			return restoreGrid(copy, save, match, vars), -1;
 
-		// printf("word = %s, coords = %d, coorde = %d\n", word.word, word.start, word.end);
 		score += findWordScore(word, game_data->grid.modifier, game_data->grid.grid);
+		printf("word = %s, coords = %d, coorde = %d\n", word.word, word.start, word.end);
+		printf("score = %d\n", score);
 	}
 	
 	printGrid(copy);
@@ -560,6 +562,8 @@ typedef struct Constraints {
 
 void printConstraint(const Constraints c) {
 	printf("-----Constraint----\n");
+	if (c.size == 0)
+		printf("X\n");
 	for (size_t i = 0; i < c.size; i++) {
 		printf("RANGE = %d-%d\n", c.range[i].s, c.range[i].e);
 		for (size_t j = 0; c.pos[i].c[j]; j++) {
@@ -567,7 +571,7 @@ void printConstraint(const Constraints c) {
         }
 		printf("~~~~~~~~~~\n");
 	}
-	printf("--------------");
+	printf("--------------\n");
 }
 
 Constraints constraintsInit( void ) {
@@ -593,10 +597,53 @@ void fillPlacementAndRange(Constraints * curr, int *x, char *c, int min, int max
 	curr->size++;
 }
 
-void rGetConstraints(GameData * game_data, Constraints * curr, Point p, char *c, int *pos, size_t max_len, int i, int it, size_t holes, int max_limit) {
+
+//You should not try to read this
+void rGetConstraints(GameData * game_data, Constraints * curr, Point p, char *c, int *pos, size_t max_len, int i, int it, size_t holes, int itp) {
+	dprintf(2, "[I] = %d\n", i);
+
+	size_t holes_save = holes;
+
+	if (isLetter(game_data->grid.copy[p.y][p.x]) && itp == 0) {
+		dprintf(2, "alos la %d\n", itp);
+		for (int j = i + 1; !isLetter(game_data->grid.copy[p.y][j]); j++) {
+			if (++holes == max_len) {
+				if (it + 1 <= j - p.x)
+					fillPlacementAndRange(curr, pos, c, it + 1, j - p.x);
+				return;
+			}
+		}
+    }
+
+	holes = holes_save;
+
 	while(i < GRID_SIZE && !isLetter(game_data->grid.copy[p.y][i])) {
-		holes++;
+		dprintf(2, "x = %d, holes = %zu\n", i, holes + 1);
+		if (++holes == max_len) {
+			if (i + 1 < GRID_SIZE && !isLetter(game_data->grid.copy[p.y][i])
+				&& isLetter(game_data->grid.copy[p.y][i + 1])) {
+				int k = i - p.x + 1;
+				for (; k < GRID_SIZE && isLetter(game_data->grid.copy[p.y][k]); k++) {
+					c[it] = game_data->grid.copy[p.y][k];
+					pos[it++] = k - p.x;
+				}
+				dprintf(2, "POINTING to %c\n", game_data->grid.copy[p.y][k - 1]);
+				dprintf(2, "@ K = %d, p.x = %d @\n", k, p.x);
+				fillPlacementAndRange(curr, pos, c, k - p.x, k - p.x);
+            }
+			else if (curr->size != 0)
+				curr->range[curr->size - 1].e = i + 1 - p.x;
+			dprintf(2, "exited\n");
+			return;
+		}
 		i++;
+	}
+	if (itp == 0 && it != 0 && isLetter(game_data->grid.copy[p.y][p.x])) {
+		if (i == GRID_SIZE && i + 1 < i - p.x)
+			fillPlacementAndRange(curr, pos, c, it + 1, i - p.x);
+		else if (it + 1 <= i - 1 - p.x)
+			fillPlacementAndRange(curr, pos, c, it + 1, i - 1- p.x);
+
 	}
 
 	if (i == GRID_SIZE)
@@ -604,52 +651,317 @@ void rGetConstraints(GameData * game_data, Constraints * curr, Point p, char *c,
 
 	while(i < GRID_SIZE && isLetter(game_data->grid.copy[p.y][i])) {
 		c[it] = game_data->grid.copy[p.y][i];
-		pos[it++] = i;
+		pos[it++] = i - p.x;
+		dprintf(2, "x = %d, letter = %c\n", i, game_data->grid.copy[p.y][i]);
 		i++;
 	}
 
 	int min = i;
 	int max = i;
+	// size_t tmp_holes = holes;
 	bool hole;
 
 	while(max < GRID_SIZE && !isLetter(game_data->grid.copy[p.y][max])) {
 		hole = true;
 		max++;
 	}
-	if (hole == true)
+	if (hole == true && max != GRID_SIZE)
 		max--;
 
-	if (max_limit)
-		fillPlacementAndRange(curr, pos, c, min, max_limit);
-	else
+	min -= p.x;
+	max -= p.x;
+	
+	dprintf(2, "placing : min = %d, max = %d\n", min, max);
+	if (min <= max)
 		fillPlacementAndRange(curr, pos, c, min, max);
-	rGetConstraints(game_data, curr, p, c, pos, max_len, i, it, holes, max_limit);
+	rGetConstraints(game_data, curr, p, c, pos, max_len, i, it, holes, ++itp);
 }
 
 
+//Don't ask how it works
 Constraints getConstraints(GameData * game_data, Point p, size_t max_len) {
 	Constraints curr = constraintsInit();
-	char c[15] = {0};
-	int pos[15] = {0};
-	rGetConstraints(game_data, &curr, p, c, pos, max_len, 0, 0, 0, 0);
+
+	if (p.x > 0 && isLetter(game_data->grid.copy[p.y][p.x - 1]))
+		return curr;
+
+	char c[15];
+	memset(c, 0x00, 15);
+
+	int pos[15];
+	memset(pos, 0x00, 15);
+
+	int i = p.x;
+	for (; i < GRID_SIZE && isLetter(game_data->grid.copy[p.y][i]); i++) {
+		c[i - p.x] = game_data->grid.copy[p.y][i];
+		pos[i - p.x] = i - p.x;
+	}
+	if (i != p.x)
+    {
+		dprintf(2, "found letter\n");
+		rGetConstraints(game_data, &curr, p, c, pos, max_len, p.x + (i - p.x), i - p.x, 0, 0);
+    }
+	else
+    {
+		dprintf(2, "didnt find letter\n");
+		rGetConstraints(game_data, &curr, p, c, pos, max_len, p.x, 0, 0, 0);
+    }
+
 
 	return curr;
 }
 
+void freeConstraints(Constraints cell_c) {
+	free(cell_c.pos);
+	free(cell_c.range);
+}
+
+void findPermutations2(char *chevalet, Vector *vect, size_t i, char *buf, size_t min, size_t max) {
+	if (chevalet && i >= strlen(chevalet)) {
+		size_t size_buf = strlen(buf);
+		if (size_buf >= min && size_buf <= max) {
+			char *tmp = sort_ascii(buf);
+			if (IT_EQ(vector_find(vect, tmp), it_end(vect)))
+				vector_push_back(vect, tmp);
+			free(tmp);
+        }
+		return;
+    }
+	buf = str_append(buf, chevalet[i]);
+
+	findPermutations2(chevalet, vect, i + 1, buf, min, max);
+
+	buf = str_remove(buf);
+
+	findPermutations2(chevalet, vect, i + 1, buf, min, max);
+}
+
+void applyPosConstraints(Vector * vect, Constraints cell_c, size_t i) {
+
+	for (Iterator it = it_begin(vect); IT_NEQ(it, it_end(vect)); it_pp(&it)) {
+
+		char * word = vect->data[it.index];
+
+		for (size_t j = 0; cell_c.pos[i].c[j]; j++) {
+
+			if (!word[cell_c.pos[i].pos[j]] || word[cell_c.pos[i].pos[j]] != cell_c.pos[i].c[j]) {
+				it_erase(&it);
+				break;
+            }
+		}
+	}
+
+}
+
+Vector purgeWrongPermutations(GameData * game_data, Vector * try) {
+
+	Vector result = vector_construct(STR_TYPE);
+
+	for (size_t i = 0; i < vector_get_size(try); i++) {
+		Vector *tmp = asciiOrderedFind(game_data->asciiTable, try->data[i]);
+		if (tmp)
+			vector_push_vector(&result, tmp);
+	}
+	vector_destruct(try);
+
+	return result;
+}
+
+int j_points[26] = {1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 10, 1, 2, 1, 1, 3, 8, 1, 1, 1, 1, 4, 10, 10, 10, 10};
+
+int getWMultiplier(int c) {
+	int m = 1;
+
+	if (c == TWORD)
+		m = 3;
+	else if (c == DWORD)
+		m = 2;
+	return m;
+}
+
+int getLMultiplier(int c) {
+	int m = 1;
+
+	if (c == TLETTER)
+		m = 3;
+	else if (c == DLETTER)
+		m = 2;
+	return m;
+}
+
+int computeScore(Point p, GameData * game_data, char current_letter) {
+	int score = 0;
+	char buffer[15];
+	memset(buffer, 0x0, 15);
+
+	int start = (game_data->grid.copy[p.y - 1][p.x] == 0) ? p.y : p.y + 1;
+	int it;
+	int word_multiplier = 1;
+	// printf("p {.y = %d, .x = %d}\n", p.y, p.x);
+
+	for (; start > 0 && game_data->grid.copy[start][p.x] != 0; start--) { }
+
+	for (it = start; it < GRID_SIZE && (game_data->grid.copy[it][p.x] != 0 || it == p.y); it++) {
+		if (it == p.y) {
+			buffer[it] = current_letter;
+			score += j_points[current_letter - 'A'] * getLMultiplier(game_data->grid.modifier[it][p.x]);
+			word_multiplier = getWMultiplier(game_data->grid.modifier[it][p.x]);
+			continue;
+        }
+		buffer[it] = game_data->grid.copy[it][p.x];
+		score += j_points[game_data->grid.copy[it][p.x] - 'A'];
+	}
+
+	// printf("word = %s\n", buffer);
+
+	if (strlen(buffer) < 2)
+		score = 0;
+	else if (hashTableFind(game_data->hashTable, buffer) == -1)
+		score = -1;
+
+	return score * word_multiplier;
+}
+
+
+void tryMatch(Match *match, GameData * game_data) {
+	// printf("------- %s---------\n", match->word);
+	int tmp_score;
+	for (int i = 0; match->start + i < match->end; i++) {
+		if (game_data->grid.copy[match->save_coord][match->start + i] == 0) {
+			tmp_score = computeScore((Point) {.y = match->save_coord, .x = match->start + i}, game_data, match->word[i]);
+			if (tmp_score == -1) {
+				match->score = -1;
+				return;
+			}
+			
+			match->score += tmp_score;
+		}
+	}
+
+	printf("word = %s match score = %d\n", match->word, match->score);
+	match->score += findWordScore(*match, game_data->grid.modifier, game_data->grid.grid);
+}
+
+MatchVector computeMatchs(GameData * game_data, Vector * vect, Point p, char *mandatory_letters) {
+
+	MatchVector try = matchVectorInit();
+	
+	for (size_t it = 0; it < vect->size; it++) {
+		Match current = {
+			.dir = HORIZONTAL,
+			.validated = true,
+			.start = p.x,
+			.end = p.x + strlen(vect->data[it]) - 1,
+			.save_coord = p.y,
+		};
+		memcpy(current.word, vect->data[it], strlen(vect->data[it]));
+
+		tryMatch(&current, game_data);
+		if (current.score == -1)
+			continue;
+
+		if (strlen(current.word) - strlen(mandatory_letters) == 7)
+			current.score += SCRABBLE;
+
+		printf("word = %s match score = %d\n", current.word, current.score);
+		matchVectorPushBack(&try, current);
+	}
+	return try;
+}
+
+
+MatchVector computeCellWords(GameData * game_data, Point p, Constraints cell_c, char * chevalet) {
+	
+	MatchVector match_result = matchVectorInit();
+
+	for (size_t i = 0; i < cell_c.size; i++) {
+		Vector try = vector_construct(STR_TYPE);
+
+		char mandatory_letters[15];
+		memset(mandatory_letters, 0x0, 15);
+
+		for (size_t j = 0; cell_c.pos[i].c[j] ; j++)
+			mandatory_letters[j] = cell_c.pos[i].c[j];
+
+		//Find all possible permutations given mandatory letters
+		findPermutations2(chevalet, &try, 0, mandatory_letters, cell_c.range[i].s, cell_c.range[i].e);
+
+		// vector_print(&try);
+
+		//Eliminate impossible permutations and returns a new vector that has all possible words given possible permutations;
+		try = purgeWrongPermutations(game_data, &try);
+
+		//Elimate impossible words given pos constraints
+		applyPosConstraints(&try, cell_c, i);
+
+		// vector_print(&try);
+		
+		MatchVector match_try = computeMatchs(game_data, &try, p, mandatory_letters);
+
+		matchVectorPushVector(&match_result, &match_try);
+
+	}
+
+	// matchVectorQuickSort(&match_result);
+	// matchVectorPrint(&match_result);
+
+	return match_result;
+}
+
 void evaluateGrid(GameData * game_data, char *chevalet) {
-	(void) chevalet;
+
+	//Max len is equal to the number of letter in the chevalet
 	size_t max_len = strlen(chevalet);
+	//Init matchVector
+	MatchVector result = matchVectorInit();
+
 	//This function will be called twice with a matrix rotation 90 in between
 	for (int Y = 0; Y < GRID_SIZE; Y++) {
 		for (int X = 0; X < GRID_SIZE; X++) {
 			//Create a point to the current cell;
 			Point p = { .y = Y, .x = X };
+			// printf("@@@ P = .y %d .x %d @@@\n", Y, X);
+
+
 			//Compute all constraints on this grid
 			Constraints cell_c = getConstraints(game_data, p, max_len);
+			if (cell_c.size == 0) {
+				freeConstraints(cell_c);
+				continue;
+			}
+			
+			//Compute all possible words given cell_constraints
+			MatchVector cell_result = computeCellWords(game_data, p, cell_c, chevalet); 
 			printConstraint(cell_c);
-			break;
+
+			//Save words to the result vector
+			matchVectorPushVector(&result, &cell_result);
+
+			//Destroy temporary cell_vector
+			matchVectorDestruct(&cell_result);
+
+			//Free constraints
+			freeConstraints(cell_c);
 		}
-		break;
+	}
+	matchVectorQuickSort(&result);
+	matchVectorPrint(&result);
+	matchVectorDestruct(&result);
+}
+
+void rotateMatrix(GameData * game_data) {
+	int new[15][15];
+
+	for (int y = 0; y < GRID_SIZE; y++) {
+		for (int x = 0; x < GRID_SIZE; x++) {
+			new[y][x] = game_data->grid.copy[x][y];
+		}
+	}
+
+	for (int y = 0; y < GRID_SIZE; y++) {
+		for (int x = 0; x < GRID_SIZE; x++) {
+			game_data->grid.copy[x][y] = new[x][y];
+		}
 	}
 }
 
@@ -669,7 +981,9 @@ int main(void) {
     copyGrid(&game_data);
 
 	// char *chevalet = rulerToStr(&game_data);
-	char chevalet[] = "CLMERET";
+	// rotateMatrix(&game_data);
+	// printGrid(game_data.grid.copy);
+	char chevalet[] = "SIZHYQS";
 	evaluateGrid(&game_data, chevalet);
 
 	printf("------GRID GRID-----\n");

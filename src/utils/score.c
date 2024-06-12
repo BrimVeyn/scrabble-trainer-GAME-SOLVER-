@@ -117,11 +117,9 @@ int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]) {
 		letter_score = k_points[word.word[i - word.start] - 'A'];
 
 		//update x and y from direction
-		int x = (word.dir == VERTICAL) ? word.save_coord : i;
-		int y = (word.dir == VERTICAL) ? i : word.save_coord;
 
-		if (g_grid[y][x] == 0)
-			modifier = g_modifier[y][x];
+		if (g_grid[word.save_coord][i] == 0)
+			modifier = g_modifier[word.save_coord][i];
 
 		//Update word and letter multiplier dependending on the modifier_grid value
 		switch (modifier) {
@@ -140,6 +138,6 @@ int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]) {
 		}
 		word_score += (letter_score * letter_multiplier);
 	}
-	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
+	printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
 	return word_score * word_multiplier;
 }

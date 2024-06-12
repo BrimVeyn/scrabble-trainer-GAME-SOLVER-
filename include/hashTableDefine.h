@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/11 10:55:49 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/12 13:17:16 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,4 +118,6 @@ bool isLetter(char c);
 bool isVert(GameData * game_data, Point cell);
 bool isHori(GameData * game_data, Point cell);
 bool isVertHori(GameData * game_data, Point cell);
+
+void findPermutations(char *str, Vector *vect, size_t i, char *buf);
 #endif
