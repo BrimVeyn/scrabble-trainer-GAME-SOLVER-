@@ -35,7 +35,7 @@ TrieNode *TrieNodeFindPrefixNode(TrieNode *const self, const char *prefix)
 		temp = temp->children[index];
 		++prefix;
 	}
-	return (self);
+	return (temp);
 }
 
 bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t depth)
