@@ -1,6 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
+/*   bench.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: pollivie <pollivie.student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/12 13:20:14 by pollivie          #+#    #+#             */
+/*   Updated: 2024/06/12 13:20:14 by pollivie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: pollivie <pollivie.student.42.fr>          +#+  +:+       +#+        */
@@ -17,6 +29,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <stdio.h>
@@ -125,7 +138,7 @@ char *openReadToEndAlloc(const char *filename)
 	}
 
 	uint64_t read_bytes = fread(buffer, 1, size, handle);
-	if (read_bytes != (uint64_t)size)
+	if (read_bytes != (uint64_t) size)
 	{
 		fclose(handle);
 		free(buffer);
@@ -149,13 +162,13 @@ void printSuggestionList(List *list)
 	}
 }
 
-void printResult(char *prefix_buffer, List *list)
+void printResult(char *prefix_buffer, List *list, double total_time)
 {
 	if (!prefix_buffer || !list)
 		return;
+	printf("Prefix search took %f ms\n", total_time);
 	printf("For the prefix: %s there are %d suggestions in the trie\n", prefix_buffer,
 	       (int32_t) list->size);
-	printSuggestionList(list);
 }
 
 int main(int argc, char **argv)
@@ -216,11 +229,14 @@ int main(int argc, char **argv)
 			if (strcmp(prefix_buffer, "exit") == 0)
 				break;
 
-			List *suggestions = TrieSuggest(word_db, prefix_buffer);
+			clock_t start = clock();
+			List   *suggestions = TrieSuggest(word_db, prefix_buffer);
+			clock_t end = clock();
+			double  total_time = ((double) end - start) / CLOCKS_PER_SEC;
 			if (suggestions)
 			{
 				// to_lowercase(prefix_buffer);
-				printResult(prefix_buffer, suggestions);
+				printResult(prefix_buffer, suggestions, total_time);
 				listDestroy(suggestions);
 			}
 			else

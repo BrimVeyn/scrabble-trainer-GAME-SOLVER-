@@ -23,8 +23,7 @@
 
 typedef struct TrieNode
 {
-	struct TrieNode *children[ALPHABET_SIZE];
-	bool             is_end_of_word;
+	struct TrieNode *children[ALPHABET_SIZE + 1];
 
 } TrieNode;
 

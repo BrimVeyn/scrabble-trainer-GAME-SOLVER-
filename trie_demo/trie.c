@@ -12,6 +12,19 @@
 
 #include "trie.h"
 
+#define END_OF_WORD_INDEX 26
+
+void setEndOfWord(TrieNode *self, bool status)
+{
+	if (self)
+		self->children[END_OF_WORD_INDEX] = (void *) status;
+}
+
+bool isEndOfWord(TrieNode *self)
+{
+	return self->children[END_OF_WORD_INDEX] != 0;
+}
+
 TrieNode *TrieNodeCreate(void)
 {
 	TrieNode *self;
@@ -19,7 +32,7 @@ TrieNode *TrieNodeCreate(void)
 	self = (TrieNode *) malloc(sizeof(TrieNode));
 	if (!self)
 		return (NULL);
-	self->is_end_of_word = false;
+	setEndOfWord(self, false);
 	memset(self->children, 0x00, ALPHABET_SIZE * sizeof(void *));
 	return (self);
 }
@@ -31,7 +44,7 @@ TrieNode *TrieNodeFindPrefixNode(TrieNode *const self, const char *prefix)
 	temp = self;
 	while (*prefix && temp)
 	{
-		const uint64_t index = *prefix - 'a';
+		const uint64_t index = (*prefix | 32) - ('a' | 32);
 		temp = temp->children[index];
 		++prefix;
 	}
@@ -44,9 +57,9 @@ bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t d
 		return (false);
 	if (*key == '\0')
 	{
-		if (self->is_end_of_word)
+		if (isEndOfWord(self))
 		{
-			self->is_end_of_word = false;
+			setEndOfWord(self, false);
 			if (TrieNodeIsEmpty(self))
 			{
 				free(self);
@@ -57,11 +70,11 @@ bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t d
 	}
 	else
 	{
-		const uint64_t index = *key - 'a';
+		const uint64_t index = (*key| 32) - ('a' | 32);
 		if (TrieNodeRemoveChild(self->children[index], key + 1, depth + 1))
 		{
 			self->children[index] = NULL;
-			return (!self->is_end_of_word && TrieNodeIsEmpty(self));
+			return (!isEndOfWord(self) && TrieNodeIsEmpty(self));
 		}
 	}
 	return (false);
@@ -115,13 +128,13 @@ void TrieInsert(Trie *const self, const char *const key)
 	node = self->root;
 	while (*ptr)
 	{
-		const uint64_t index = *ptr - 'a';
+		const uint64_t index = (*ptr | 32) - ('a' | 32);
 		if (!node->children[index])
 			node->children[index] = TrieNodeCreate();
 		node = node->children[index];
 		++ptr;
 	}
-	node->is_end_of_word = true;
+	setEndOfWord(node, true);
 }
 
 bool TrieSearch(Trie *const self, const char *const key)
@@ -133,13 +146,13 @@ bool TrieSearch(Trie *const self, const char *const key)
 	ptr = key;
 	while (*ptr)
 	{
-		const uint64_t index = *key - 'a';
+		const uint64_t index = (*key | 32) - ('a' | 32);
 		if (!node->children[index])
 			return (false);
 		node = node->children[index];
 		++ptr;
 	}
-	return (node != NULL && node->is_end_of_word);
+	return (node != NULL && isEndOfWord(node));
 }
 
 bool TrieRemove(Trie *const self, const char *const key)
@@ -163,15 +176,15 @@ void TrieCollectSuggestions(TrieNode *const node, const char *prefix, List *sugg
 {
 	if (!node)
 		return;
-	if (node->is_end_of_word)
+	if (isEndOfWord(node))
 		listPushBack(suggestions, (uintptr_t) strdup(prefix));
 	for (uint64_t i = 0; i < ALPHABET_SIZE; ++i)
 	{
 		if (node->children[i])
 		{
-			uint64_t prefix_len = strlen(prefix);
-			uint64_t new_len = prefix_len + 2;
-			char    *prefix_buffer = (char *) malloc(new_len);
+			const uint64_t prefix_len = strlen(prefix);
+			const uint64_t new_len = prefix_len + 2;
+			char    *const prefix_buffer = (char *) malloc(new_len);
 			if (prefix_buffer)
 			{
 				snprintf(prefix_buffer, new_len, "%s%c", prefix, (uint8_t) ('a' + i));
