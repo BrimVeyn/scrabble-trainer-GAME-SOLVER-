@@ -105,7 +105,7 @@ char *str_remove(char *s);
 int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]);
 int calcMatchWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], int scrabble);
 
-MatchVector matchVectorInit( void );
+MatchVector *matchVectorInit( void );
 void matchVectorPushBack(MatchVector * vect, Match match);
 void matchVectorPrint(MatchVector * vect);
 void matchVectorDestruct (MatchVector * vect);
@@ -113,7 +113,7 @@ void matchVectorPushVector(MatchVector *v1, MatchVector *v2);
 void matchVectorQuickSort(MatchVector *vect);
 
 
-MatchVector computeAdjacent(GameData * game_data, Vector * word_list, Point cell);
+MatchVector *computeAdjacent(GameData * game_data, Vector * word_list, Point cell);
 bool isLetter(char c);
 bool isVert(GameData * game_data, Point cell);
 bool isHori(GameData * game_data, Point cell);

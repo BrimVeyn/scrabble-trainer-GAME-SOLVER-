@@ -138,6 +138,6 @@ int findWordScore(Match word, int g_modifier[15][15], int g_grid[15][15]) {
 		}
 		word_score += (letter_score * letter_multiplier);
 	}
-	printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
+	// printf("word [%s] score = %d\n", word.word, word_score * word_multiplier);
 	return word_score * word_multiplier;
 }

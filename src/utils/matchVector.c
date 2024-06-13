@@ -12,12 +12,13 @@
 
 #include "../include/hashTableDefine.h"
 
-MatchVector matchVectorInit( void ) {
-	MatchVector new = {
-		.data = calloc(10, sizeof(Match)),
-		.size = 0,
-		.capacity = 10,
-	};
+MatchVector *matchVectorInit( void ) {
+	MatchVector *new = malloc(sizeof(struct MatchVector));
+
+	new->data = calloc(10, sizeof(struct Match));
+	new->size = 0;
+	new->capacity = 10;
+
 	return new;
 }
 
@@ -43,11 +44,15 @@ void matchVectorPrint(MatchVector * vect) {
 
 void matchVectorDestruct (MatchVector * vect) {
 	free(vect->data);
+  free(vect);
 }
 
 void matchVectorPushVector(MatchVector *v1, MatchVector *v2) {
-	for (size_t i = 0; i < v2->size; i++)
+  if (v2->size == 0)
+    return ;
+	for (size_t i = 0; i < v2->size; i++) {
 		matchVectorPushBack(v1, v2->data[i]);
+  }
 }
 
 void matchVectorSwap(MatchVector *vect, size_t i1, size_t i2) {
