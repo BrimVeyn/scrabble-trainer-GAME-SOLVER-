@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/14 10:00:37 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/14 23:43:41 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ int calcMatchWordScore(Match word, int g_modifier[15][15], int g_tour[15][15], i
 
 MatchVector *matchVectorInit( void );
 void matchVectorPushBack(MatchVector * vect, Match match);
-void matchVectorPrint(MatchVector * vect);
+void matchVectorPrint(MatchVector * vect, int debug);
 void matchVectorDestruct (MatchVector * vect);
 void matchVectorPushVector(MatchVector *v1, MatchVector *v2);
 void matchVectorQuickSort(MatchVector *vect);

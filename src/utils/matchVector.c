@@ -6,11 +6,33 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 14:31:09 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/10 16:42:19 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 00:19:40 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/hashTableDefine.h"
+
+#define DARK_GREENF "\x1b[38;2;0;128;0m"
+
+const char* getModifiedColor(float score) {
+    static char modifiedColor[24]; // Sufficient size to hold the modified color string
+    int r = 214; // Original red component
+    int g = 150; // Original green component
+    int b = 60; // Original blue component
+
+    // Ensure score is not zero to avoid division by zero
+    if (score == 0) score = 1;
+
+    // Divide the color components by the score
+    r *= score;
+    // g *= score;
+    b *= score;
+
+    // Create the modified color string
+    snprintf(modifiedColor, sizeof(modifiedColor), "\x1b[38;2;%d;%d;%dm", r, g, b);
+    
+    return modifiedColor;
+}
 
 MatchVector *matchVectorInit( void ) {
 	MatchVector *new = malloc(sizeof(struct MatchVector));
@@ -31,14 +53,22 @@ void matchVectorPushBack(MatchVector * vect, Match match) {
 	vect->size++;
 }
 
-void matchVectorPrint(MatchVector * vect) {
-	for (size_t i = 0; i < vect->size; i++) {
-		printf("word[%zu] = { .word = %s\n .start = %d,\n .end = %d,\n .saved_coord = %d,\n", i, vect->data[i].word, vect->data[i].start, vect->data[i].end, vect->data[i].save_coord);
-		if (vect->data[i].dir == VERTICAL)
-			printf(" .dir = VERTICAL\n");
-		else
-			printf(" .dir = HORIZONTAL\n");
-		printf(" .score =" DARK_REDF " %d" RESET_COLOR "\n }\n", vect->data[i].score);
+void matchVectorPrint(MatchVector * vect, int debug) {
+	if (debug) {
+		for (size_t i = 0; i < vect->size; i++) {
+			printf("word[%zu] = { .word = %s\n .start = %d,\n .end = %d,\n .saved_coord = %d,\n", i, vect->data[i].word, vect->data[i].start, vect->data[i].end, vect->data[i].save_coord);
+			if (vect->data[i].dir == VERTICAL)
+				printf(" .dir = VERTICAL\n");
+			else
+				printf(" .dir = HORIZONTAL\n");
+			printf(" .score =" DARK_REDF " %d" RESET_COLOR "\n }\n", vect->data[i].score);
+		}
+	} else {
+		int max_score = vect->data[vect->size - 1].score;
+		for (size_t i = 0; i < vect->size; i++) {
+			float score_on_max = (float)(vect->data[i].score) / max_score;
+			printf("word[%4zu] = "DARK_REDF"%-15s"RESET_COLOR"| %s%-4d"RESET_COLOR" | %s"RESET_COLOR"\n", i, vect->data[i].word, getModifiedColor(score_on_max), vect->data[i].score, (vect->data[i].dir == VERTICAL) ? YELLOW_F"V" : YBLUE_F"H");
+		}
 	}
 }
 

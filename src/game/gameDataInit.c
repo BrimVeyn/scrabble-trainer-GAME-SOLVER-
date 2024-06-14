@@ -43,5 +43,7 @@ GameData gameDataInit( void ) {
 		.prev_scores = vector_construct(INT_TYPE),
 	};
 
+	game_data.iterator = 0;
+
 	return game_data;
 }
