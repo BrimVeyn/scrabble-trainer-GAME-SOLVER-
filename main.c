@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/15 15:27:00 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 15:56:43 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,10 +142,13 @@ void fillPlacementAndRange(Constraints * curr, int *pos, char *c, int min, int m
 	curr->range[curr->size].s = min;
 	curr->range[curr->size].e = max;
 
-	for (int i = 0; c[i]; i++) {
+	int i = 0;
+	for (; c[i]; i++) {
 		curr->pos[curr->size].pos[i] = pos[i];
 		curr->pos[curr->size].c[i] = c[i];
 	}
+	curr->pos[curr->size].pos[i] = 0;
+	curr->pos[curr->size].c[i] = 0;
 
 	curr->size++;
 }
@@ -526,7 +529,7 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 
 			//Create a point to the current cell;
 			Point p = P(X, Y);
-			printf("@@@ P = .y %d .x %d @@@\n", Y, X);
+			// printf("@@@ P = .y %d .x %d @@@\n", Y, X);
 
 
 			//Compute all constraints on this grid
