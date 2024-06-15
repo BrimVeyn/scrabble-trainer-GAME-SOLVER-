@@ -4,13 +4,19 @@
 void hashedWordInit(GameData *game_data) {
 	game_data->hashTable = calloc(TABLE_SIZE, sizeof(word *));
 
-	int fd = open(ORDERED_WORD_LIST_PATH, O_RDONLY);
-	if (fd == -1)
-		exit(EXIT_FAILURE);
+    size_t length;
+    char *data = getRawData(ORDERED_WORD_LIST_PATH, &length);
 
-	char *raw_file = getRawData(fd);
+    if (data != MAP_FAILED) {
+        // Use the data
+        printf("Read %zu bytes\n", length);
+		hashTableFill(game_data->hashTable, data);
 
-	hashTableFill(game_data->hashTable, raw_file);
-	free(raw_file);
-	close(fd);
+        // When done, unmap the memory
+        if (munmap(data, length) == -1) {
+            perror("munmap");
+        }
+    } else {
+        fprintf(stderr, "Failed to map file\n");
+    }
 }

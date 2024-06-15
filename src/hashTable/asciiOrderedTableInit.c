@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/05 15:46:38 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/06 12:48:47 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 15:37:16 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,19 +170,21 @@ Vector *asciiOrderedFind(AsciiOrderedTable **hashTable, char *to_find) {
 void asciiOrderedTableInit(GameData *game_data) {
 	game_data->asciiTable = calloc(ASCII_ORDERED_SIZE, sizeof(AsciiOrderedTable *));
 
-	int sorted_fd = open("data/sortedByAscii.txt", O_RDONLY);
-	if (sorted_fd == -1)
-		exit(EXIT_FAILURE);
+    size_t length;
+    char *data = getRawData("data/sortedByAscii.txt", &length);
 
-	char *raw_sorted = getRawData(sorted_fd);
+    if (data != MAP_FAILED) {
+        // Use the data
+        printf("Read %zu bytes\n", length);
+		asciiOrderedFill(game_data->asciiTable, data);
 
-	asciiOrderedFill(game_data->asciiTable, raw_sorted);
-	free(raw_sorted);
-	// asciiOrderedPrint(table);
-	// asciiOrderedClear(table);
-
-	// printf("count = %d\n", count);
-	
+        // When done, unmap the memory
+        if (munmap(data, length) == -1) {
+            perror("munmap");
+        }
+    } else {
+        fprintf(stderr, "Failed to map file\n");
+    }
 
 }
 

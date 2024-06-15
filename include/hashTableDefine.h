@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/14 23:43:41 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 15:34:42 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 #include "../lib_vector/include/struct.h"
 #include "../lib_vector/include/Vector/vector_define.h"
 #include "../lib_vector/include/Iterator/iterator_define.h"
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -43,7 +45,7 @@ void hashTablePrint(word **hashTable);
 void hashTableFill(word **hashTable, char *raw_data);
 
 int getHash(char* s);
-char* getRawData(int fd);
+void *getRawData(const char *filename, size_t *length);
 size_t getScore(char *word);
 
 //tree

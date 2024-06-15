@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/15 11:50:48 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 15:27:00 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,11 @@ void RayLoop(GameData *game_data) {
 			eventListener(game_data);
 
 			checkTourWord(game_data);
-
 		}
 		EndDrawing();
 	}
 	CloseWindow();
 }
-
 
 char *rulerToStr(GameData * game_data) {
     char *ptr = calloc(8, sizeof(char));
@@ -127,23 +125,23 @@ void printConstraint(const Constraints c) {
 
 Constraints constraintsInit( void ) {
 	Constraints new;
-	new.pos = calloc(10, sizeof(struct Placement));
-	new.range = calloc(10, sizeof(struct Range));
+	new.pos = calloc(2, sizeof(struct Placement));
+	new.range = calloc(2, sizeof(struct Range));
 	new.size = 0;
-	new.capacity = 10;
+	new.capacity = 2;
 	return new;
 }
 
 void fillPlacementAndRange(Constraints * curr, int *pos, char *c, int min, int max) {
-	if (curr->size == curr->capacity)
-		curr->pos = realloc(curr->pos, curr->capacity * 2);
+	if (curr->size == curr->capacity) {
+		curr->capacity *= 2;
+		curr->pos = realloc(curr->pos, curr->capacity * sizeof(struct Placement));
+		curr->range = realloc(curr->range, curr->capacity * sizeof(struct Range));
+	}
 
 	curr->range[curr->size].s = min;
 	curr->range[curr->size].e = max;
 
-	// for (int i = 0; c[i]; i++) {
-	// 	printf("C = %c, POS = %d\n", c[i], pos[i]);
-	// }
 	for (int i = 0; c[i]; i++) {
 		curr->pos[curr->size].pos[i] = pos[i];
 		curr->pos[curr->size].c[i] = c[i];
@@ -164,23 +162,23 @@ bool isLetterAboveOrBelow(GameData * gd, Point p) {
 #define P(x, y) (Point){x, y}
 #define DELTA(size1, size2) ABS((int)(size1 - size2))
 
-void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, int *pos, size_t max_len, int i, int it, size_t holes, int itp, int iterator) {
-    int j = i;
-    bool letterFound = false;
+void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, int *pos, size_t max_len, int func_cursor, int it, size_t holes, int itp, int iterator) {
+    int j = func_cursor;
+	bool letterFound = false;
 
 	if (!isLetter(game_data->grid.copy[p.y][p.x]) && iterator == 0) {
 		int dist_letter = 0;
 		for (; j <= 14 && !isLetter(game_data->grid.copy[p.y][j]) && ++holes <= max_len;) {
-			dprintf(2, "coord = %d\n", j);
+			// dprintf(2, "coord = %d\n", j);
 			if (isLetterAboveOrBelow(game_data, P(j, p.y))) {
 				if (!letterFound)
-					dist_letter = j - i + 1;
+					dist_letter = j - func_cursor + 1;
 				letterFound = true;
-				dprintf(2, "j = %d, i = %d\n", j, i);
+				// dprintf(2, "j = %d, func_cursor = %d\n", j, i);
 			}
 			j++;
 		}
-		int max_range = j - i;
+		int max_range = j - func_cursor;
 		if (j <= 14 && isLetter(game_data->grid.copy[p.y][j]))
 			max_range--;
 		dist_letter = dist_letter < 2 ? 2 : dist_letter;
@@ -199,7 +197,8 @@ void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, i
 			pos[it] = j - p.x;
 			c[it] = game_data->grid.copy[p.y][j];
 		}
-		// printf("ICI %d %d\n", p.y, j);
+		if (j == 15)
+			j--;
 		if (j == 14 || (j + 1 <= 14 && !isLetter(game_data->grid.copy[p.y][j + 1])))
 			goto inContact;
 		for (; j <= 14 && !isLetter(game_data->grid.copy[p.y][j]) && ++holes < max_len; j++);
@@ -240,7 +239,9 @@ inContact: {
     min = min + 1 - p.x;
     max = max + 1 - p.x;
 
-	// printf("min = %d, max = %d\n", min, max);
+	if (strlen(c) == (size_t) max) {
+		return;
+	}
 
     if ((letterFound || c[0] != 0) && min <= max) {
 		// printf("PUSH\n");
@@ -248,31 +249,27 @@ inContact: {
     }
 
 	// dprintf(2, "holes = %zu\n", holes);
-    if (holes >= max_len || min == 14 || max == 14 || p.x + max - 1 == 14) {
-		if (strlen(c) == (size_t) max) {
-			curr->size--;
-		}
-
+    if (holes >= max_len || min == 14 || max == 14 || p.x + max - 1 == 14)
         return;
-	}
 
     rGetConstraints(game_data, curr, p, c, pos, max_len, p.x + max - 1, it, holes, itp, ++iterator);
-    }
+}
 }
 
-//Don't ask how it works
 Constraints getConstraints(GameData * game_data, Point p, size_t max_len) {
+	//Initialize struct
 	Constraints curr = constraintsInit();
 
+	//If the current p.x has a lette to its left, then no word can begin here
 	if (p.x > 0 && isLetter(game_data->grid.copy[p.y][p.x - 1]))
 		return curr;
 
+	//Init temporary c and pos (will be later filled and added to Constraints)
 	char c[15] = {0};
-
 	int pos[15] = {0};
 
+	//Recursive function begin
 	rGetConstraints(game_data, &curr, p, c, pos, max_len, p.x, 0, 0, 0, 0);
-
 
 	return curr;
 }
@@ -304,10 +301,11 @@ void findPermutations(char *chevalet, Vector *vect, size_t i, char *buf, size_t 
 
 void applyPosConstraints(Vector * vect, Constraints cell_c, size_t i) {
 
-	if (!cell_c.pos[i].c[0]) {
-		printf("HERE\n");
+	//If there are no mandatory letters, return;
+	if (!cell_c.pos[i].c[0])
 		return;
-	}
+
+	//Check if every mandatory letter matches with the word we're evaluating
 	for (Iterator it = it_begin(vect); IT_NEQ(it, it_end(vect)); it_pp(&it)) {
 
 		char * word = vect->data[it.index];
@@ -325,6 +323,7 @@ void applyPosConstraints(Vector * vect, Constraints cell_c, size_t i) {
 
 Vector purgeWrongPermutations(GameData * game_data, Vector * try) {
 
+	//Could be replaced by Iterator loop to prevent using a second vector
 	Vector result = vector_construct(STR_TYPE);
 
 	for (size_t i = 0; i < vector_get_size(try); i++) {
@@ -368,40 +367,45 @@ bool isBanned(GameData * game_data, Point p) {
 	return false;
 }
 
-int computeScore(Point p, GameData * game_data, char current_letter) {
+static inline int computeScore(Point p, GameData * game_data, char current_letter) {
 	int score = 0;
-	char buffer[15];
-	memset(buffer, 0x0, 15 * sizeof(char));
+	char buffer[16] = {0};
 
 	int word_multiplier = 1;
 
 	int start = p.y;
 
+	//Find start
 	for (; start - 1 >= 0 && isLetter(game_data->grid.copy[start - 1][p.x]); start--) ;
 
 	int end = p.y;
 
+	//Find end
 	for (; end + 1 <= 14 && isLetter(game_data->grid.copy[end + 1][p.x]); end++) ;
 
-
+	//Compute word score	
 	for (int it = start; it <= end;  it++) {
 		if (it == p.y) {
+			//Apply multipliers since its a new letter
 			buffer[it - start] = current_letter;
 			score += j_points[current_letter - 'A'] * getLMultiplier(game_data->grid.modifier[it][p.x]);
 			word_multiplier = getWMultiplier(game_data->grid.modifier[it][p.x]);
         } else {
+			//No multiplier since the letter is already on the grid
 			buffer[it - start] = game_data->grid.copy[it][p.x];
 			score += j_points[game_data->grid.copy[it][p.x] - 'A'];
 		}
 	}
 
+	//If strlen < 2 means that there were no letters above nor below
 	if (strlen(buffer) < 2)
 		score = 0;
+	//If the word isnt in the dictionnaire - flush
 	else if (hashTableFind(game_data->hashTable, buffer) == -1)
 		score = -1;
 
-	dprintf(2, "word = |%s|, score = %d\n", buffer, score);
 
+	// dprintf(2, "word = |%s|, score = %d\n", buffer, score);
 	return score * word_multiplier;
 }
 
@@ -516,7 +520,7 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 	// Vector cleaned_perm_chevalet = purgeWrongPermutations(game_data, &perm_chevalet);
 
 
-	//This function will be called twice with a matrix rotation 90 in between
+	//This function will be called twice with a matrix transpose in between
 	for (int Y = 0; Y < GRID_SIZE; Y++) {
 		for (int X = 0; X < GRID_SIZE; X++) {
 
@@ -527,6 +531,7 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 
 			//Compute all constraints on this grid
 			Constraints cell_c = getConstraints(game_data, p, max_len);
+			// printGrid(game_data->grid.copy);
 			// printConstraint(cell_c);
 			// freeConstraints(cell_c);
 			// continue;
@@ -536,16 +541,12 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 			}
 			//Compute all possible words given cell_constraints
 			MatchVector *cell_result = computeCellWords(game_data, p, cell_c, chevalet); 
-			// printConstraint(cell_c);
 			//Free constraints
 			freeConstraints(cell_c);
-
 			//Save words to the result vector
 			matchVectorPushVector(result, cell_result);
-
 			//Destroy temporary cell_vector
 			matchVectorDestruct(cell_result);
-
 		}
 	}
 	// vector_destruct(&cleaned_perm_chevalet);
@@ -553,18 +554,15 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 	return result;
 }
 
-void rotateMatrix(GameData * game_data) {
-	int new[15][15];
+void matrixTranspose(GameData * game_data) {
+	int tmp;
 
 	for (int y = 0; y < GRID_SIZE; y++) {
-		for (int x = 0; x < GRID_SIZE; x++) {
-			new[y][x] = game_data->grid.copy[x][y];
-		}
-	}
-
-	for (int y = 0; y < GRID_SIZE; y++) {
-		for (int x = 0; x < GRID_SIZE; x++) {
-			game_data->grid.copy[x][y] = new[x][y];
+		for (int x = y + 1; x < GRID_SIZE; x++) {
+			tmp = game_data->grid.copy[x][y];
+			game_data->grid.copy[x][y] = game_data->grid.copy[y][x];
+			game_data->grid.copy[y][x] = tmp;
+			// new[y][x] = game_data->grid.copy[x][y];
 		}
 	}
 }
@@ -583,20 +581,20 @@ int main(void) {
 	//Algo start//
 
 	copyGrid(&game_data);
-	// rotateMatrix(&game_data);
+	// matrixTranspose(&game_data);
 
-	char chevalet[] = "DECALES";
+	char chevalet[] = "CREMAIT";
 
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-	MatchVector * result = evaluateGrid(&game_data, chevalet);
-
 	// printf("------GRID COPY-----\n");
 	// printGrid(game_data.grid.copy);
 	// printf("--------------------\n");
+	MatchVector * result = evaluateGrid(&game_data, chevalet);
 
-	rotateMatrix(&game_data);
+
+	matrixTranspose(&game_data);
 
 	MatchVector * result_transposed = evaluateGrid(&game_data, chevalet);
 
@@ -622,11 +620,14 @@ int main(void) {
 	printGrid(game_data.grid.grid);
 	printf("---------------\n");
 
+	printf("------GRID-----\n");
+	printGrid(game_data.grid.copy);
+	printf("---------------\n");
+
     printf("-----TIME TO COMPUTE----\n");
     printf("Elapsed time: "DARK_GREENF"%.3f ms\n"RESET_COLOR, elapsed);
     printf("Elapsed time: "DARK_GREENF"%.3f µs\n"RESET_COLOR, elapsed_us);
     printf("-------------------------\n");
-
 
 	hashTableClear(game_data.hashTable);
 	asciiOrderedClear(game_data.asciiTable);
