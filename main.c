@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/15 00:21:35 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 11:50:48 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,7 +199,8 @@ void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, i
 			pos[it] = j - p.x;
 			c[it] = game_data->grid.copy[p.y][j];
 		}
-		if (j + 1 <= 14 && !isLetter(game_data->grid.copy[p.y][j + 1]))
+		// printf("ICI %d %d\n", p.y, j);
+		if (j == 14 || (j + 1 <= 14 && !isLetter(game_data->grid.copy[p.y][j + 1])))
 			goto inContact;
 		for (; j <= 14 && !isLetter(game_data->grid.copy[p.y][j]) && ++holes < max_len; j++);
 		for (; j <= 14 && isLetter(game_data->grid.copy[p.y][j]) && it < 15; j++, it++) {
@@ -303,8 +304,10 @@ void findPermutations(char *chevalet, Vector *vect, size_t i, char *buf, size_t 
 
 void applyPosConstraints(Vector * vect, Constraints cell_c, size_t i) {
 
-	if (!cell_c.pos[i].c[0])
+	if (!cell_c.pos[i].c[0]) {
+		printf("HERE\n");
 		return;
+	}
 	for (Iterator it = it_begin(vect); IT_NEQ(it, it_end(vect)); it_pp(&it)) {
 
 		char * word = vect->data[it.index];
@@ -411,7 +414,7 @@ void tryMatch(Match *match, GameData * game_data) {
 		if (game_data->grid.copy[match->save_coord][match->start + i] == 0) {
 			tmp_score = computeScore((Point) {.y = match->save_coord, .x = match->start + i}, game_data, match->word[i]);
 			// printf("it = %d, score = %d, lettre = %c\n", i, tmp_score, match->word[i]);
-			if (tmp_score == -1) {
+			if (tmp_score < 0) {
 				match->score = -1;
 				return;
 			}
@@ -422,7 +425,7 @@ void tryMatch(Match *match, GameData * game_data) {
 	// printf("word = %s match score = %d\n", match->word, match->score);
 	// printf("--------END--------\n");
 
-	match->score += findWordScore(*match, game_data->grid.modifier, game_data->grid.grid);
+	match->score += findWordScore(*match, game_data->grid.modifier, game_data->grid.copy);
 }
 
 MatchVector *computeMatchs(GameData * game_data, Vector * vect, Point p, char *mandatory_letters) {
@@ -457,7 +460,9 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 	MatchVector *match_result = matchVectorInit();
 
 	for (size_t i = 0; i < cell_c.size; i++) {
-		Vector try = vector_construct(STR_TYPE);
+		Vector try;
+
+		try = vector_construct(STR_TYPE);
 
 		char mandatory_letters[16] = {0};
 
@@ -480,6 +485,8 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 		// matchVectorPrint(match_try);
 
 		matchVectorPushVector(match_result, match_try);
+		vector_destruct(&try);
+		matchVectorDestruct(match_try);
 
 	}
 
@@ -501,14 +508,12 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 
 	// Vector perm_chevalet = vector_construct(STR_TYPE);
 
-	char buffer[16];
-	memset(buffer, 0x0, 16 * sizeof(char));
+	// char buffer[16] = {0};
 
-	//Find permutatiosn with given chevalet
+	// // Find permutatiosn with given chevalet
 	// findPermutations(chevalet, &perm_chevalet, 0, buffer, 2, strlen(chevalet));
-	//Clean all impossible permutations
+	// // Clean all impossible permutations
 	// Vector cleaned_perm_chevalet = purgeWrongPermutations(game_data, &perm_chevalet);
-	// (void) cleaned_perm_chevalet;
 
 
 	//This function will be called twice with a matrix rotation 90 in between
@@ -543,6 +548,7 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet) {
 
 		}
 	}
+	// vector_destruct(&cleaned_perm_chevalet);
 	game_data->iterator = 1;
 	return result;
 }
@@ -579,7 +585,10 @@ int main(void) {
 	copyGrid(&game_data);
 	// rotateMatrix(&game_data);
 
-	char chevalet[] = "DECALER";
+	char chevalet[] = "DECALES";
+
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
 	MatchVector * result = evaluateGrid(&game_data, chevalet);
 
@@ -589,7 +598,17 @@ int main(void) {
 
 	rotateMatrix(&game_data);
 
-	matchVectorPushVector(result, evaluateGrid(&game_data, chevalet));
+	MatchVector * result_transposed = evaluateGrid(&game_data, chevalet);
+
+	matchVectorPushVector(result, result_transposed);
+	matchVectorDestruct(result_transposed);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    long seconds = end.tv_sec - start.tv_sec;
+    long nanoseconds = end.tv_nsec - start.tv_nsec;
+    double elapsed = seconds * 1e3 + nanoseconds * 1e-6; // milliseconds
+    double elapsed_us = seconds * 1e6 + nanoseconds * 1e-3; // microseconds
 
 	matchVectorQuickSort(result);
 	matchVectorPrint(result, 0);
@@ -599,9 +618,14 @@ int main(void) {
 	printf("LETTERS = "YELLOW_F"%s\n"RESET_COLOR, chevalet);
 	printf("------------------\n");
 
-	printf("------GRID COPY-----\n");
-	printGrid(game_data.grid.copy);
-	printf("--------------------\n");
+	printf("------GRID-----\n");
+	printGrid(game_data.grid.grid);
+	printf("---------------\n");
+
+    printf("-----TIME TO COMPUTE----\n");
+    printf("Elapsed time: "DARK_GREENF"%.3f ms\n"RESET_COLOR, elapsed);
+    printf("Elapsed time: "DARK_GREENF"%.3f µs\n"RESET_COLOR, elapsed_us);
+    printf("-------------------------\n");
 
 
 	hashTableClear(game_data.hashTable);

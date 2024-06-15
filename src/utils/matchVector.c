@@ -6,13 +6,11 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 14:31:09 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/15 00:19:40 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/15 11:20:10 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/hashTableDefine.h"
-
-#define DARK_GREENF "\x1b[38;2;0;128;0m"
 
 const char* getModifiedColor(float score) {
     static char modifiedColor[24]; // Sufficient size to hold the modified color string
@@ -78,11 +76,11 @@ void matchVectorDestruct (MatchVector * vect) {
 }
 
 void matchVectorPushVector(MatchVector *v1, MatchVector *v2) {
-  if (v2->size == 0)
-    return ;
+	if (v2->size == 0)
+		return;
 	for (size_t i = 0; i < v2->size; i++) {
 		matchVectorPushBack(v1, v2->data[i]);
-  }
+	}
 }
 
 void matchVectorSwap(MatchVector *vect, size_t i1, size_t i2) {
