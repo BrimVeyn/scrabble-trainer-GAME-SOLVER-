@@ -456,17 +456,25 @@ MatchVector *computeMatchs(GameData * game_data, Vector * vect, Point p, char *m
 		if (strlen(current.word) - strlen(mandatory_letters) == 7)
 			current.score += SCRABBLE;
 
-		/*printf("word = %s match score = %d\n", current.word, current.score);*/
+		// printf("word = %s match score = %d\n", current.word, current.score);
 		matchVectorPushBack(try, current);
 	}
 	return try;
 }
 
-typedef struct SubPermVector {
-	Vector *subPerms;
-}	SubPermVector;
+Vector getRightPerms(Vector *cleaned_perm_chevalet, size_t min, size_t max) {
+    Vector try = vector_construct(STR_TYPE);
 
-MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c, char * chevalet, SubPermVector *sub_perms) {
+    for (size_t i = 0; i < cleaned_perm_chevalet->size; i++) {
+        size_t size = strlen(cleaned_perm_chevalet->data[i]);
+        if (size >= min && size <= max) {
+            vector_push_back(&try, cleaned_perm_chevalet->data[i]);
+        }
+    }
+    return try;
+}
+
+MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c, char * chevalet, Vector *cleaned_perm_chevalet) {
 	
 	MatchVector *match_result = matchVectorInit();
 
@@ -476,7 +484,7 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 		char mandatory_letters[16] = {0};
 
 		if (!cell_c.pos[i].c[0]) {
-			try = sub_perms->subPerms[cell_c.range[i].e - 1];
+            try = getRightPerms(cleaned_perm_chevalet, cell_c.range[i].s, cell_c.range[i].e);
 			goto compute;
 		}
 
@@ -504,8 +512,8 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 		// matchVectorPrint(match_try);
 
 		matchVectorPushVector(match_result, match_try);
-		if (cell_c.pos[i].c[0])
-			vector_destruct(&try);
+        if (cell_c.pos[i].c[0])
+            vector_destruct(&try);
 		matchVectorDestruct(match_try);
 
 	}
@@ -519,35 +527,7 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 #define MIN(a, b) a < b ? a : b
 #define MAX(a, b) a > b ? a : b
 
-
-SubPermVector subPermInit(Vector *cleaned_perm_chevalet, size_t max_len) {
-	SubPermVector new = {
-		.subPerms = calloc(max_len, sizeof(Vector)),
-	};
-
-	for (size_t i = 0; i < max_len; i++) {
-		new.subPerms[i] = vector_construct(STR_TYPE);
-	}
-
-	for (Iterator it = it_begin(cleaned_perm_chevalet); IT_NEQ(it, it_end(cleaned_perm_chevalet)); it_pp(&it)) {
-		size_t size = strlen(it.vector->data[it.index]);
-		vector_push_back(&new.subPerms[size - 1], it.vector->data[it.index]);
-	}
-
-
-	return new;
-}
-
-void subPermDestruct(SubPermVector * sub_perms, size_t max_len) {
-
-	for (size_t i = 0; i < max_len; i++) {
-		vector_destruct(&sub_perms->subPerms[i]);
-	}
-	free(sub_perms->subPerms);
-}
-
-
-MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, SubPermVector *sub_perms) {
+MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, Vector *cleaned_perm_chevalet) {
 
 	//Max len is equal to the number of letter in the chevalet
 	//Init matchVector
@@ -565,7 +545,6 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, 
 
 			//Compute all constraints on this grid
 			Constraints cell_c = getConstraints(game_data, p, max_len);
-			// printGrid(game_data->grid.copy);
 			// printConstraint(cell_c);
 			// freeConstraints(cell_c);
 			// continue;
@@ -574,7 +553,7 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, 
 				continue;
 			}
 			//Compute all possible words given cell_constraints
-			MatchVector *cell_result = computeCellWords(game_data, p, cell_c, chevalet, sub_perms); 
+			MatchVector *cell_result = computeCellWords(game_data, p, cell_c, chevalet, cleaned_perm_chevalet); 
 			//Free constraints
 			freeConstraints(cell_c);
 			//Save words to the result vector
@@ -606,7 +585,7 @@ void resolveGrid(GameData * game_data) {
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "CREMAIT";
+	char chevalet[] = "SMOKELU";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;
@@ -622,20 +601,14 @@ void resolveGrid(GameData * game_data) {
 	// // Clean all impossible permutations
 	Vector cleaned_perm_chevalet = purgeWrongPermutations(game_data, &perm_chevalet);
 
-	//Init sub_perms (2--max_len);
-	SubPermVector sub_perms = subPermInit(&cleaned_perm_chevalet, max_len);
-
-	//Free cleaned_perm_chevalet
-	vector_destruct(&cleaned_perm_chevalet);
-
 	//Evaluate horizontally
-	MatchVector * result = evaluateGrid(game_data, chevalet, max_len, &sub_perms);
+	MatchVector * result = evaluateGrid(game_data, chevalet, max_len, &cleaned_perm_chevalet);
 
 	//Transpose
 	matrixTranspose(game_data->grid.copy);
 
 	//Repeat
-	MatchVector * result_transposed = evaluateGrid(game_data, chevalet, max_len, &sub_perms);
+	MatchVector * result_transposed = evaluateGrid(game_data, chevalet, max_len, &cleaned_perm_chevalet);
 
 	//Merge both and destruct second
 	matchVectorPushVector(result, result_transposed);
@@ -650,8 +623,8 @@ void resolveGrid(GameData * game_data) {
 
 	matchVectorQuickSort(result);
 	matchVectorPrint(result, 0);
-	subPermDestruct(&sub_perms, max_len);
 	matchVectorDestruct(result);
+	vector_destruct(&cleaned_perm_chevalet);
 
 	printf("----CHEVALET------\n");
 	printf("LETTERS = "YELLOW_F"%s\n"RESET_COLOR, chevalet);
@@ -661,9 +634,9 @@ void resolveGrid(GameData * game_data) {
 	printGrid(game_data->grid.grid);
 	printf("---------------\n");
 
-	printf("------GRID-----\n");
-	printGrid(game_data->grid.copy);
-	printf("---------------\n");
+	// printf("------GRID-----\n");
+	// printGrid(game_data->grid.copy);
+	// printf("---------------\n");
 
     printf("-----TIME TO COMPUTE----\n");
     printf("Elapsed time: "DARK_GREENF"%.3f ms\n"RESET_COLOR, elapsed);
@@ -676,10 +649,10 @@ int main(void) {
 
 	GameData game_data = gameDataInit();
 
-	InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
-	SetTargetFPS(60);
-	
-	RayLoop(&game_data);
+	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+	// SetTargetFPS(60);
+	// 
+	// RayLoop(&game_data);
 
 	//Algo start//
 	//
