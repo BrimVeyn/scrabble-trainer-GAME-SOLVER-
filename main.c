@@ -512,8 +512,7 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 		// matchVectorPrint(match_try);
 
 		matchVectorPushVector(match_result, match_try);
-        if (cell_c.pos[i].c[0])
-            vector_destruct(&try);
+        vector_destruct(&try);
 		matchVectorDestruct(match_try);
 
 	}
@@ -585,7 +584,7 @@ void resolveGrid(GameData * game_data) {
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "SMOKELU";
+	char chevalet[] = "CABUZES";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;
