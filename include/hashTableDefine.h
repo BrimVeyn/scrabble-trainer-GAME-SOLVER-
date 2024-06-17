@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:34 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/15 15:34:42 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/17 08:55:48 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,7 @@
 
 #define BUFFER_SIZE 1024
 
-#define screenWidth  1200
-#define screenHeight 1200
-#define	CELL_SIZE		 55
+#define	CELL_SIZE		 45
 #define DRAW_OFFSET_X     5
 #define DRAW_OFFSET_Y     5
 

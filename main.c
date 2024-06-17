@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/17 08:40:24 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/17 08:58:17 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+
+int screenHeight;
+int screenWidth;
+int windowWidth;
+int windowHeight;
 
 void eventListener(GameData *game_data) {
 	Vector2 mouseP = {GetMouseX(), GetMouseY()};
@@ -584,7 +589,7 @@ void resolveGrid(GameData * game_data) {
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "PLULAO";
+	char chevalet[] = "ZEN";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;
@@ -646,11 +651,15 @@ void resolveGrid(GameData * game_data) {
 
 int main(void) {
 
+	windowHeight = 900;
+	windowWidth = 1200;
+	
+
 	GameData game_data = gameDataInit();
 
-	// InitWindow(screenWidth, screenHeight, "[Scrabble Trainer]");
+	// InitWindow(windowWidth, windowHeight, "[Scrabble Trainer]");
 	// SetTargetFPS(60);
-	// 
+	//
 	// RayLoop(&game_data);
 
 	//Algo start//

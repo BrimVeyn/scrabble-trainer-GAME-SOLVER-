@@ -1,6 +1,10 @@
-
 #include "../../include/hashTableDefine.h"
 #include "struct.h"
+
+extern int screenHeight;
+extern int screenWidth;
+extern int windowWidth;
+extern int windowHeight;
 
 GameData gameDataInit( void ) {
 	struct GameData game_data = {
@@ -20,7 +24,7 @@ GameData gameDataInit( void ) {
 
 	game_data.ruler_rect = (Rectangle) {
 		.x = 100 + 4 * CELL_SIZE,
-		.y = screenHeight - CELL_SIZE - CELL_SIZE,
+		.y = windowHeight - CELL_SIZE - CELL_SIZE,
 		.width = CELL_SIZE * 7,
 		.height = CELL_SIZE,
 	};

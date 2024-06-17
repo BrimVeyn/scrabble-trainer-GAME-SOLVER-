@@ -1,5 +1,9 @@
 #include "../../include/hashTableDefine.h"
 
+extern int screenHeight;
+extern int screenWidth;
+extern int windowWidth;
+extern int windowHeight;
 
 void drawValidate(GameData *game_data) {
 	TourManager *ptr = &game_data->tour;
@@ -43,7 +47,7 @@ void drawTourScore(GameData * game_data) {
 }
 
 void drawTotalScore(GameData * game_data) {
-	int width = (screenWidth - (game_data->grid.grid_rect.width + (CELL_SIZE / 8)));
+	int width = (windowWidth - (game_data->grid.grid_rect.width + (CELL_SIZE / 8)));
 	Rectangle s = {
 		.x = game_data->grid.grid_rect.width + (0.1 * width),
 		.y = DRAW_OFFSET_Y, 

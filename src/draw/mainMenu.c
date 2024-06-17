@@ -1,13 +1,17 @@
 #include "../../include/hashTableDefine.h"
 
+extern int screenHeight;
+extern int screenWidth;
+extern int windowWidth;
+extern int windowHeight;
 
 void mainMenu(GameData *game_data) {
 	ClearBackground(BEIGE);
-	int buttonHeight = screenHeight / 5;
-	int buttonWidth = screenWidth / 2;
-	int buttonSpacing = screenHeight / 16;
-	int mainOffsetY = (screenHeight - (buttonHeight * 3 + buttonSpacing * 2)) / 2;
-	int mainOffsetX = screenWidth / 4;
+	int buttonHeight = windowHeight / 5;
+	int buttonWidth = windowWidth / 2;
+	int buttonSpacing = windowHeight / 16;
+	int mainOffsetY = (windowHeight - (buttonHeight * 3 + buttonSpacing * 2)) / 2;
+	int mainOffsetX = windowWidth / 4;
 	int textHeight = 100;
 	int textWidthPlay = MeasureText("PLAY", textHeight);
 	int textWidthQuit = MeasureText("QUIT", textHeight);
