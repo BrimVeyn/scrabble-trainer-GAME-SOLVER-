@@ -2,7 +2,7 @@ BIN             := demo
 LIB_VECTOR		:= lib_vector/lib/libvector.a
 
 CC              := gcc
-CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast
+CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast -fPIE
 LDFLAGS			:= -lm -Ilib/raylib/include -Ilib_vector/include -Llib/raylib/lib -Lvector_lib/lib -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 INC_DIR         := include
 DEPS            := $(OBJ:.o=.d)

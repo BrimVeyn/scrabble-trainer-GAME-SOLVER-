@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/22 08:28:33 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/05/23 15:17:34 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/17 08:03:21 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,5 +15,6 @@
 void is_empty( void ) {
 	int a;
 	a = write(STDERR_FILENO, "Error: vector is empty\n", 23);
-	(void)a;
+	if (a == -1)
+		perror("Write Failed\n");
 }

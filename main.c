@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/16 10:10:58 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/17 08:40:24 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,7 +165,7 @@ bool isLetterAboveOrBelow(GameData * gd, Point p) {
 #define P(x, y) (Point){x, y}
 #define DELTA(size1, size2) ABS((int)(size1 - size2))
 
-void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, int *pos, size_t max_len, int func_cursor, int it, size_t holes, int itp, int iterator) {
+void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, int *pos, size_t max_len, int func_cursor, int it, size_t holes, int iterator) {
     int j = func_cursor;
 	bool letterFound = false;
 
@@ -191,7 +191,7 @@ void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, i
 			if (max_range >= 2)
 				fillPlacementAndRange(curr, pos, c, dist_letter, max_range);
 		}
-		rGetConstraints(game_data, curr, p, c, pos, max_len, p.x, 0, 0, 0, ++iterator);
+		rGetConstraints(game_data, curr, p, c, pos, max_len, p.x, 0, 0, ++iterator);
 		return;
 	}
 
@@ -255,7 +255,7 @@ inContact: {
     if (holes >= max_len || min == 14 || max == 14 || p.x + max - 1 == 14)
         return;
 
-    rGetConstraints(game_data, curr, p, c, pos, max_len, p.x + max - 1, it, holes, itp, ++iterator);
+    rGetConstraints(game_data, curr, p, c, pos, max_len, p.x + max - 1, it, holes, ++iterator);
 }
 }
 
@@ -272,7 +272,7 @@ Constraints getConstraints(GameData * game_data, Point p, size_t max_len) {
 	int pos[15] = {0};
 
 	//Recursive function begin
-	rGetConstraints(game_data, &curr, p, c, pos, max_len, p.x, 0, 0, 0, 0);
+	rGetConstraints(game_data, &curr, p, c, pos, max_len, p.x, 0, 0, 0);
 
 	return curr;
 }
@@ -584,7 +584,7 @@ void resolveGrid(GameData * game_data) {
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "CABUZES";
+	char chevalet[] = "PLULAO";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;

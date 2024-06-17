@@ -3,7 +3,7 @@ LIB_DIR         := lib
 BIN             := demo
 
 CC              := cc
-CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast -Iinclude
+CFLAGS			:= -Wall -Wextra -Werror -g3 -mtune=native -march=native -Ofast -Iinclude -fPIE
 LDFLAGS			:= -lm
 SILENT_FLAGS 	:= -D SILENT=1
 INC_DIR         := include
