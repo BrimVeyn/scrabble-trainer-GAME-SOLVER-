@@ -31,11 +31,11 @@ TrieNode *TrieNodeFindPrefixNode(TrieNode *const self, const char *prefix)
 	temp = self;
 	while (*prefix && temp)
 	{
-		const uint64_t index = *prefix - 'a';
+		const uint64_t index = (*prefix | 32) - ('a' | 32);
 		temp = temp->children[index];
 		++prefix;
 	}
-	return (self);
+	return (temp);
 }
 
 bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t depth)
@@ -57,7 +57,7 @@ bool TrieNodeRemoveChild(TrieNode *self, const char *const key, const uint64_t d
 	}
 	else
 	{
-		const uint64_t index = *key - 'a';
+		const uint64_t index = (*key | 32) - ('a' | 32);
 		if (TrieNodeRemoveChild(self->children[index], key + 1, depth + 1))
 		{
 			self->children[index] = NULL;
@@ -115,7 +115,7 @@ void TrieInsert(Trie *const self, const char *const key)
 	node = self->root;
 	while (*ptr)
 	{
-		const uint64_t index = *ptr - 'a';
+		const uint64_t index = (*ptr | 32) - ('a' | 32);
 		if (!node->children[index])
 			node->children[index] = TrieNodeCreate();
 		node = node->children[index];
@@ -133,7 +133,7 @@ bool TrieSearch(Trie *const self, const char *const key)
 	ptr = key;
 	while (*ptr)
 	{
-		const uint64_t index = *key - 'a';
+		const uint64_t index = (*key | 32) - ('a' | 32);
 		if (!node->children[index])
 			return (false);
 		node = node->children[index];
