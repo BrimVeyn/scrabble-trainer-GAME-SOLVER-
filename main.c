@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/17 08:58:17 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/17 09:26:03 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -544,14 +544,11 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, 
 
 			//Create a point to the current cell;
 			Point p = P(X, Y);
-			// printf("@@@ P = .y %d .x %d @@@\n", Y, X);
+			printf("@@@ P = .y %d .x %d @@@\n", Y, X);
 
 
 			//Compute all constraints on this grid
 			Constraints cell_c = getConstraints(game_data, p, max_len);
-			// printConstraint(cell_c);
-			// freeConstraints(cell_c);
-			// continue;
 			if (cell_c.size == 0) {
 				freeConstraints(cell_c);
 				continue;
@@ -571,7 +568,6 @@ MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, 
 }
 
 void matrixTranspose(int m[GRID_SIZE][GRID_SIZE]) {
-
 	int tmp;
 
 	for (size_t y = 0; y < GRID_SIZE; y++) {
@@ -583,13 +579,12 @@ void matrixTranspose(int m[GRID_SIZE][GRID_SIZE]) {
 	}
 }
 
-
 void resolveGrid(GameData * game_data) {
 
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "ZEN";
+	char chevalet[] = "ZENUESP";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;
@@ -662,11 +657,7 @@ int main(void) {
 	//
 	// RayLoop(&game_data);
 
-	//Algo start//
-	//
-	
 	resolveGrid(&game_data);
-
 
 	hashTableClear(game_data.hashTable);
 	asciiOrderedClear(game_data.asciiTable);
