@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pollivie <pollivie.student.42.fr>          +#+  +:+       +#+        */
+/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:06:28 by pollivie          #+#    #+#             */
-/*   Updated: 2024/06/12 12:06:29 by pollivie         ###   ########.fr       */
+/*   Updated: 2024/06/23 15:45:22 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,76 +158,130 @@ void printResult(char *prefix_buffer, List *list)
 	printSuggestionList(list);
 }
 
-int main(int argc, char **argv)
-{
+// int main(int argc, char **argv)
+// {
+// 	Trie  *word_db = NULL;
+// 	char  *file_buffer = NULL;
+// 	char **file_words = NULL;
+// 	int    wcount = 0;
+//
+// 	if (argc > 1)
+// 	{
+// 		word_db = TrieCreate();
+// 		if (!word_db)
+// 		{
+// 			fprintf(stderr, "Failed to create Trie\n");
+// 			return EXIT_FAILURE;
+// 		}
+//
+// 		file_buffer = openReadToEndAlloc(argv[1]);
+// 		if (!file_buffer)
+// 		{
+// 			fprintf(stderr, "Failed to read file\n");
+// 			TrieDestroy(word_db);
+// 			return EXIT_FAILURE;
+// 		}
+//
+// 		file_words = split(file_buffer, '\n', &wcount);
+// 		if (!file_words)
+// 		{
+// 			fprintf(stderr, "Failed to split file contents\n");
+// 			free(file_buffer);
+// 			TrieDestroy(word_db);
+// 			return EXIT_FAILURE;
+// 		}
+//
+// 		for (int i = 0; i < wcount; i++)
+// 		{
+// 			// to_lowercase(file_words[i]);
+// 			TrieInsert(word_db, file_words[i]);
+// 		}
+//
+// 		free(file_buffer);
+// 		for (int i = 0; i < wcount; i++)
+// 			free(file_words[i]);
+// 		free(file_words);
+//
+// 		char prefix_buffer[100];
+// 		printf("Enter a prefix to see suggestions (or 'exit' to quit):\n");
+// 		while (1)
+// 		{
+// 			memset(prefix_buffer, 0, sizeof(prefix_buffer));
+// 			printf("Prefix: ");
+// 			if (scanf("%99s", prefix_buffer) != 1)
+// 			{
+// 				printf("Invalid input, please try again.\n");
+// 				continue;
+// 			}
+// 			if (strcmp(prefix_buffer, "exit") == 0)
+// 				break;
+//
+// 			List *suggestions = TrieSuggest(word_db, prefix_buffer);
+// 			if (suggestions)
+// 			{
+// 				// to_lowercase(prefix_buffer);
+// 				printResult(prefix_buffer, suggestions);
+// 				listDestroy(suggestions);
+// 			}
+// 			else
+// 				printf("No suggestions found.\n");
+// 		}
+//
+// 		TrieDestroy(word_db);
+// 	}
+// 	return EXIT_SUCCESS;
+// }
+
+int main(int ac, char **argv) {
+	(void) ac;
 	Trie  *word_db = NULL;
 	char  *file_buffer = NULL;
 	char **file_words = NULL;
 	int    wcount = 0;
 
-	if (argc > 1)
+	word_db = TrieCreate();
+	if (!word_db)
 	{
-		word_db = TrieCreate();
-		if (!word_db)
-		{
-			fprintf(stderr, "Failed to create Trie\n");
-			return EXIT_FAILURE;
-		}
-
-		file_buffer = openReadToEndAlloc(argv[1]);
-		if (!file_buffer)
-		{
-			fprintf(stderr, "Failed to read file\n");
-			TrieDestroy(word_db);
-			return EXIT_FAILURE;
-		}
-
-		file_words = split(file_buffer, '\n', &wcount);
-		if (!file_words)
-		{
-			fprintf(stderr, "Failed to split file contents\n");
-			free(file_buffer);
-			TrieDestroy(word_db);
-			return EXIT_FAILURE;
-		}
-
-		for (int i = 0; i < wcount; i++)
-		{
-			// to_lowercase(file_words[i]);
-			TrieInsert(word_db, file_words[i]);
-		}
-
-		free(file_buffer);
-		for (int i = 0; i < wcount; i++)
-			free(file_words[i]);
-		free(file_words);
-
-		char prefix_buffer[100];
-		printf("Enter a prefix to see suggestions (or 'exit' to quit):\n");
-		while (1)
-		{
-			memset(prefix_buffer, 0, sizeof(prefix_buffer));
-			printf("Prefix: ");
-			if (scanf("%99s", prefix_buffer) != 1)
-			{
-				printf("Invalid input, please try again.\n");
-				continue;
-			}
-			if (strcmp(prefix_buffer, "exit") == 0)
-				break;
-
-			List *suggestions = TrieSuggest(word_db, prefix_buffer);
-			if (suggestions)
-			{
-				// to_lowercase(prefix_buffer);
-				printResult(prefix_buffer, suggestions);
-				listDestroy(suggestions);
-			}
-			else
-				printf("No suggestions found.\n");
-		}
-
-		TrieDestroy(word_db);
+		fprintf(stderr, "Failed to create Trie\n");
+		return EXIT_FAILURE;
 	}
-	return EXIT_SUCCESS;
+
+	file_buffer = openReadToEndAlloc(argv[1]);
+	if (!file_buffer)
+	{
+		fprintf(stderr, "Failed to read file\n");
+		TrieDestroy(word_db);
+		return EXIT_FAILURE;
+	}
+
+	file_words = split(file_buffer, '\n', &wcount);
+	if (!file_words)
+	{
+		fprintf(stderr, "Failed to split file contents\n");
+		free(file_buffer);
+		TrieDestroy(word_db);
+		return EXIT_FAILURE;
+	}
+
+	for (int i = 0; i < wcount; i++)
+	{
+		// to_lowercase(file_words[i]);
+		TrieInsert(word_db, file_words[i]);
+	}
+
+	free(file_buffer);
+	for (int i = 0; i < wcount; i++)
+		free(file_words[i]);
+	free(file_words);
+
+    List *matches = TrieSearchPattern(word_db, "!!!!!!C*");
+    while (!listIsEmpty(matches)) {
+        char *match = (char *)listPopFront(matches);
+        printf("%s\n", match);
+        free(match);
+    }
+
+    listDestroy(matches);
+    TrieDestroy(word_db);
+    return 0;
 }

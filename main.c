@@ -6,7 +6,7 @@
 /*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 14:57:21 by bvan-pae          #+#    #+#             */
-/*   Updated: 2024/06/17 09:26:03 by bvan-pae         ###   ########.fr       */
+/*   Updated: 2024/06/23 15:10:56 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,13 @@ int screenHeight;
 int screenWidth;
 int windowWidth;
 int windowHeight;
+
+#define GRID_SIZE 15
+#define MIN(a, b) a < b ? a : b
+#define MAX(a, b) a > b ? a : b
+#define ABS(x) x < 0 ? -x : x
+#define P(x, y) (Point){x, y}
+#define DELTA(size1, size2) ABS((int)(size1 - size2))
 
 void eventListener(GameData *game_data) {
 	Vector2 mouseP = {GetMouseX(), GetMouseY()};
@@ -79,8 +86,6 @@ char *rulerToStr(GameData * game_data) {
     return ptr;
 }
 
-#define GRID_SIZE 15
-
 //simply makes a copy of grid.grid to grid.copy to work on it
 void copyGrid(GameData * game_data) {
     for (int y = 0; y < 15; y++) {
@@ -91,7 +96,6 @@ void copyGrid(GameData * game_data) {
 bool isLetter(char c) {
 	return (c >= 'A' && c <= 'Z');
 }
-
 
 
 typedef struct Range {
@@ -166,9 +170,6 @@ bool isLetterAboveOrBelow(GameData * gd, Point p) {
 	return false;
 }
 
-#define ABS(x) x < 0 ? -x : x
-#define P(x, y) (Point){x, y}
-#define DELTA(size1, size2) ABS((int)(size1 - size2))
 
 void rGetConstraints(GameData *game_data, Constraints *curr, Point p, char *c, int *pos, size_t max_len, int func_cursor, int it, size_t holes, int iterator) {
     int j = func_cursor;
@@ -392,16 +393,16 @@ static inline int computeScore(Point p, GameData * game_data, char current_lette
 	for (; end + 1 <= 14 && isLetter(game_data->grid.copy[end + 1][p.x]); end++) ;
 
 	//Compute word score	
-	for (int it = start; it <= end;  it++) {
-		if (it == p.y) {
-			//Apply multipliers since its a new letter
-			buffer[it - start] = current_letter;
-			score += j_points[current_letter - 'A'] * getLMultiplier(game_data->grid.modifier[it][p.x]);
-			word_multiplier = getWMultiplier(game_data->grid.modifier[it][p.x]);
+	for (int curr_y = start; curr_y <= end;  curr_y++) {
+		if (curr_y == p.y) {
+			//Apply multipliers since curr_ys a new letter
+			buffer[curr_y - start] = current_letter;
+			score += j_points[current_letter - 'A'] * getLMultiplier(game_data->grid.modifier[curr_y][p.x]);
+			word_multiplier = getWMultiplier(game_data->grid.modifier[curr_y][p.x]);
         } else {
 			//No multiplier since the letter is already on the grid
-			buffer[it - start] = game_data->grid.copy[it][p.x];
-			score += j_points[game_data->grid.copy[it][p.x] - 'A'];
+			buffer[curr_y - start] = game_data->grid.copy[curr_y][p.x];
+			score += j_points[game_data->grid.copy[curr_y][p.x] - 'A'];
 		}
 	}
 
@@ -411,7 +412,6 @@ static inline int computeScore(Point p, GameData * game_data, char current_lette
 	//If the word isnt in the dictionnaire - flush
 	else if (hashTableFind(game_data->hashTable, buffer) == -1)
 		score = -1;
-
 
 	// dprintf(2, "word = |%s|, score = %d\n", buffer, score);
 	return score * word_multiplier;
@@ -488,6 +488,7 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 
 		char mandatory_letters[16] = {0};
 
+		//If no letter constraints, just compute now
 		if (!cell_c.pos[i].c[0]) {
             try = getRightPerms(cleaned_perm_chevalet, cell_c.range[i].s, cell_c.range[i].e);
 			goto compute;
@@ -528,25 +529,19 @@ MatchVector *computeCellWords(GameData * game_data, Point p, Constraints cell_c,
 	return match_result;
 }
 
-#define MIN(a, b) a < b ? a : b
-#define MAX(a, b) a > b ? a : b
 
 MatchVector *evaluateGrid(GameData * game_data, char *chevalet, size_t max_len, Vector *cleaned_perm_chevalet) {
-
 	//Max len is equal to the number of letter in the chevalet
+
 	//Init matchVector
 	MatchVector *result = matchVectorInit();
-
 
 	//This function will be called twice with a matrix transpose in between
 	for (int Y = 0; Y < GRID_SIZE; Y++) {
 		for (int X = 0; X < GRID_SIZE; X++) {
-
 			//Create a point to the current cell;
 			Point p = P(X, Y);
-			printf("@@@ P = .y %d .x %d @@@\n", Y, X);
-
-
+			// printf("@@@ P = .y %d .x %d @@@\n", Y, X);
 			//Compute all constraints on this grid
 			Constraints cell_c = getConstraints(game_data, p, max_len);
 			if (cell_c.size == 0) {
@@ -584,7 +579,7 @@ void resolveGrid(GameData * game_data) {
 	copyGrid(game_data);
 	// matrixTranspose(&game_data);
 
-	char chevalet[] = "ZENUESP";
+	char chevalet[] = "JDHEISO";
 	size_t max_len = strlen(chevalet);
 
     struct timespec start, end;

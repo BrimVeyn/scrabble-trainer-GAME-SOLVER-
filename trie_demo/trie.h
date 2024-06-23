@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   trie.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pollivie <pollivie.student.42.fr>          +#+  +:+       +#+        */
+/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 22:32:18 by pollivie          #+#    #+#             */
-/*   Updated: 2024/06/10 22:32:19 by pollivie         ###   ########.fr       */
+/*   Updated: 2024/06/23 15:46:15 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,7 @@ void TrieCollectSuggestions(TrieNode *const node, const char *prefix, List *sugg
 Trie *TrieDestroy(Trie *const self);
 
 // EXPERIMENTAL
+//
+List *TrieSearchPattern(Trie *const self, char *pattern);
 
 #endif

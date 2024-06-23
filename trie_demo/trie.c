@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   trie.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pollivie <pollivie.student.42.fr>          +#+  +:+       +#+        */
+/*   By: bvan-pae <bryan.vanpaemel@gmail.com>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/10 22:31:53 by pollivie          #+#    #+#             */
-/*   Updated: 2024/06/10 22:31:55 by pollivie         ###   ########.fr       */
+/*   Updated: 2024/06/23 16:05:32 by bvan-pae         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "trie.h"
+#include <stdint.h>
 
 #define END_OF_WORD_INDEX 26
 
@@ -167,6 +168,7 @@ List *TrieSuggest(Trie *const self, const char *prefix)
 
 	suggestions = listCreate();
 	prefix_node = TrieNodeFindPrefixNode(self->root, prefix);
+	dprintf(2, "%s\n", prefix);
 	if (prefix_node)
 		TrieCollectSuggestions(prefix_node, strdup(prefix), suggestions);
 	return (suggestions);
@@ -204,3 +206,54 @@ Trie *TrieDestroy(Trie *const self)
 	}
 	return (NULL);
 }
+
+void TrieCollectWords(TrieNode *node, char *prefix, List *suggestions) {
+    if (!node)
+        return;
+    if (isEndOfWord(node))
+        listPushBack(suggestions, (uintptr_t)strdup(prefix));
+
+    char new_prefix[strlen(prefix) + 2];
+    for (uint64_t i = 0; i < ALPHABET_SIZE; ++i) {
+        if (node->children[i]) {
+            snprintf(new_prefix, sizeof(new_prefix), "%s%c", prefix, (uint8_t) ('a' + i));
+            TrieCollectWords(node->children[i], new_prefix, suggestions);
+        }
+    }
+}
+
+void TrieBFSForWildcards(TrieNode *node, uint64_t depth, List *nodes) {
+    if (depth == 6) {
+        listPushBack(nodes, (uintptr_t)node);
+        return;
+    }
+
+    for (uint64_t i = 0; i < ALPHABET_SIZE; ++i) {
+        if (node->children[i]) {
+            TrieBFSForWildcards(node->children[i], depth + 1, nodes);
+        }
+    }
+}
+
+List *TrieSearchPattern(Trie *const self, char *pattern) {
+    List *nodes, *suggestions;
+    TrieNode *node;
+    char prefix[7] = {0};
+
+    // Handle the case where the pattern starts with six wildcards
+    nodes = listCreate();
+    TrieBFSForWildcards(self->root, 0, nodes);
+
+    suggestions = listCreate();
+    while (!listIsEmpty(nodes)) {
+        node = (TrieNode *)listPopFront(nodes);
+        if (node->children['C' - 'A']) {
+            snprintf(prefix, sizeof(prefix), pattern);
+            TrieCollectWords(node->children['C' - 'A'], prefix, suggestions);
+        }
+    }
+
+    listDestroy(nodes);
+    return suggestions;
+}
+
